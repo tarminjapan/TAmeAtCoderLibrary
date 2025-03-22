@@ -8,7 +8,7 @@ using System.Net;
 using System.Text;
 
 // // -------------------- DEBUG --------------------
-// using var st = new StreamReader(@"TAmeAtCoderLibrary\Inputs\random_09.txt", System.Text.Encoding.GetEncoding("UTF-8"));
+// using var st = new StreamReader(@"AtCoderCSharp\Inputs\random_09.txt", System.Text.Encoding.GetEncoding("UTF-8"));
 // var inputs = st.ReadLine().Split().Select(int.Parse).ToArray();
 // var iN = inputs[0];
 // var iQ = inputs[1];
