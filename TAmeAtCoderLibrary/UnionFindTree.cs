@@ -1,4 +1,4 @@
-namespace TAmeAtCoderLibrary;
+namespace TJAtCoderLibs;
 
 /// <summary>
 /// Union-Find Tree (素集合データ構造)
@@ -18,6 +18,13 @@ public class UnionFindTree<T> where T : IComparable
     {
         Leafs = new Dictionary<T, UnionFindLeaf>();
     }
+
+    /// <summary>
+    /// 指定されたIDを持つ要素がUnion-Find木に存在するかどうかを確認します。
+    /// </summary>
+    /// <param name="id">存在を確認する要素のID。</param>
+    /// <returns>指定されたIDを持つ要素が存在する場合はtrue、存在しない場合はfalseを返します。</returns>
+    public bool Contains(T id) => Leafs.ContainsKey(id);
 
     /// <summary>
     /// 新しい根を追加します。
