@@ -1,53 +1,65 @@
 namespace TAmeAtCoderLibrary;
 
 using System;
-using System.Collections.Generic; // IEnumerable<T1> を使用するために必要
+using System.Collections.Generic;
 
 /// <summary>
 /// 自己平衡二分探索木です。挿入、削除、検索の各操作が常にO(log n)の時間計算量で行えます。
 /// </summary>
-/// <typeparam name="T1">木に格納する要素の型。IComparable<T1> インターフェースを実装している必要があります。</typeparam>
-public class AvlTree<T1> where T1 : IComparable<T1>
+/// <typeparam name="T">木に格納する要素の型。IComparable<T> インターフェースを実装している必要があります。</typeparam>
+public class AvlTree<T> where T : IComparable<T>
 {
     /// <summary>
     /// ルートノードを取得または設定します。
     /// </summary>
-    public TreeNode RootNode { get; private set; }
+    public Node RootNode { get; private set; }
+
     /// <summary>
     /// 木の最小キー値を取得します。木が空の場合は型のデフォルト値を返します。
     /// </summary>
-    public T1 MinKey => RootNode == null ? default : RootNode.GetMin();
+    public T MinKey => RootNode != null ? RootNode.GetMin() : default;
+
     /// <summary>
     /// 木の最大キー値を取得します。木が空の場合は型のデフォルト値を返します。
     /// </summary>
-    public T1 MaxKey => RootNode == null ? default : RootNode.GetMax();
+    public T MaxKey => RootNode != null ? RootNode.GetMax() : default;
 
     /// <summary>
-    /// 空の<see cref="AvlTree{T1}"/>クラスの新しいインスタンスを初期化します。
+    /// 空の<see cref="AvlTree{T}"/>クラスの新しいインスタンスを初期化します。
     /// </summary>
     public AvlTree() { }
 
     /// <summary>
-    /// 指定したコレクションに含まれる要素を使用して、<see cref="AvlTree{T1}"/>クラスの新しいインスタンスを初期化します。
+    /// 指定したコレクションに含まれる要素を使用して、<see cref="AvlTree{T}"/>クラスの新しいインスタンスを初期化します。
     /// </summary>
-    /// <param name="enum">初期化する要素を含むコレクション。</param>
-    public AvlTree(IEnumerable<T1> @enum)
+    /// <param name="collection">初期化する要素を含むコレクション。</param>
+    public AvlTree(IEnumerable<T> collection)
     {
-        foreach (var item in @enum)
+        foreach (var item in collection)
+        {
             Add(item);
+        }
     }
 
     /// <summary>
     /// 木に新しい要素を追加します。同じ要素が既に存在する場合は、何も行いません。
     /// </summary>
     /// <param name="item">追加する要素。</param>
-    public void Add(T1 item)
+    public void Add(T item)
     {
         if (Contains(item))
+        {
             return;
+        }
 
-        if (RootNode == null) RootNode = new TreeNode(item, this);
-        else RootNode.Add(item);
+        if (RootNode == null)
+        {
+            RootNode = new Node(item, this);
+        }
+        else
+        {
+            RootNode.Add(item);
+        }
     }
 
     /// <summary>
@@ -55,7 +67,11 @@ public class AvlTree<T1> where T1 : IComparable<T1>
     /// </summary>
     public void Clear()
     {
-        if (RootNode == null) return;
+        if (RootNode == null)
+        {
+            return;
+        }
+
         RootNode.Clear();
         RootNode = null;
     }
@@ -65,61 +81,74 @@ public class AvlTree<T1> where T1 : IComparable<T1>
     /// </summary>
     /// <param name="item">木内で検索する要素。</param>
     /// <returns>指定した要素が木に含まれている場合は<c>true</c>。それ以外の場合は<c>false</c>。</returns>
-    public bool Contains(T1 item) => RootNode != null && RootNode.Contains(item);
+    public bool Contains(T item) => RootNode != null && RootNode.Contains(item);
 
     /// <summary>
     /// 指定した値よりも小さい最大の値を内部的に取得します。
     /// </summary>
     /// <param name="item">基準となる値。</param>
-    /// <param name="min">現在の最小値。</param>
+    /// <param name="currentMax">現在の最大値。</param>
     /// <returns>指定した値よりも小さい最大の値を返します。</returns>
-    private T1 _GetBelow(T1 item, T1 min) => RootNode == null ? min : RootNode.GetBelow(item, min);
+    private T FindLessThan(T item, T currentMax) => RootNode != null ? RootNode.FindLessThan(item, currentMax) : currentMax;
+
     /// <summary>
     /// 指定した値よりも大きい最小の値を内部的に取得します。
     /// </summary>
     /// <param name="item">基準となる値。</param>
-    /// <param name="max">現在の最大値。</param>
+    /// <param name="currentMin">現在の最小値。</param>
     /// <returns>指定した値よりも大きい最小の値を返します。</returns>
-    private T1 _GetNext(T1 item, T1 max) => RootNode == null ? max : RootNode.GetAbove(item, max);
+    private T FindGreaterThan(T item, T currentMin) => RootNode != null ? RootNode.FindGreaterThan(item, currentMin) : currentMin;
+
     /// <summary>
     /// 指定したキー以下の最大のキーを返します。
     /// </summary>
     /// <param name="item">基準となるキー。</param>
     /// <param name="minKey">許容される最小のキー。</param>
     /// <returns>指定したキー以下の最大のキー。そのようなキーが存在しない場合は <paramref name="minKey"/> を返します。</returns>
-    public T1 GetBelow(T1 item, T1 minKey) => Contains(item) ? item : _GetBelow(item, minKey);
+    public T FindLessThanOrEqual(T item, T minKey) => Contains(item) ? item : FindLessThan(item, minKey);
+
     /// <summary>
     /// 指定したキー以上の最小のキーを返します。
     /// </summary>
     /// <param name="item">基準となるキー。</param>
     /// <param name="maxKey">許容される最大のキー。</param>
     /// <returns>指定したキー以上の最小のキー。そのようなキーが存在しない場合は <paramref name="maxKey"/> を返します。</returns>
-    public T1 GetNext(T1 item, T1 maxKey) => Contains(item) ? item : _GetNext(item, maxKey);
+    public T FindGreaterThanOrEqual(T item, T maxKey) => Contains(item) ? item : FindGreaterThan(item, maxKey);
 
     /// <summary>
     /// 木に格納されている要素の数を取得します。
     /// </summary>
-    public int Count { get { return RootNode == null ? 0 : RootNode.Count; } }
+    public int Count => RootNode?.Count ?? 0;
 
     /// <summary>
     /// 木から指定した要素を削除します。要素が見つからない場合は、何も行いません。
     /// </summary>
     /// <param name="item">削除する要素。</param>
-    public void Remove(T1 item)
+    /// <returns>要素が削除された場合は<c>true</c>。それ以外の場合は<c>false</c>。</returns>
+    public bool Remove(T item)
     {
-        RootNode.Remove(item);
+        if (RootNode == null)
+        {
+            return false;
+        }
+
+        return RootNode.Remove(item);
     }
 
     /// <summary>
     /// 木の要素を昇順で含むリストを返します。
     /// </summary>
-    /// <returns>木の要素を昇順で並べた<see cref="List{T1}"/>。</returns>
-    public List<T1> InOrder()
+    /// <returns>木の要素を昇順で並べた<see cref="List{T}"/>。</returns>
+    public List<T> ToSortedList()
     {
-        var queue = new List<T1>();
-        RootNode.InOrder(queue);
+        var result = new List<T>();
 
-        return queue;
+        if (RootNode != null)
+        {
+            RootNode.InOrderTraversal(result);
+        }
+
+        return result;
     }
 
     /// <summary>
@@ -129,57 +158,71 @@ public class AvlTree<T1> where T1 : IComparable<T1>
     /// <returns>指定したインデックスにある要素。</returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> が範囲外の場合。</exception>
     /// <exception cref="InvalidOperationException">インデックスへの設定操作はサポートされていません。</exception>
-    public T1 this[int index]
+    public T this[int index]
     {
         get
         {
-            if (RootNode != null) return RootNode[index];
-            else throw new ArgumentOutOfRangeException("index");
+            if (RootNode != null)
+            {
+                return RootNode[index];
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(index), $"指定されたインデックス {index} は範囲外です。有効な範囲は 0 ~ {Count - 1} です。");
         }
-        set { throw new InvalidOperationException("インデックスによる設定操作はサポートされていません。"); }
+        set
+        {
+            throw new InvalidOperationException("インデックスによる設定操作はサポートされていません。");
+        }
     }
 
     /// <summary>
-    /// <see cref="AvlTree{T1}"/>クラスのノードを表します。
+    /// <see cref="AvlTree{T}"/>クラスのノードを表します。
     /// </summary>
-    public class TreeNode
+    public class Node
     {
         /// <summary>
-        /// <see cref="TreeNode"/>クラスの新しいインスタンスを初期化します。
+        /// <see cref="Node"/>クラスの新しいインスタンスを初期化します。
         /// </summary>
         /// <param name="item">ノードに格納する値。</param>
-        /// <param name="tree">このノードが属する<see cref="AvlTree{T1}"/>インスタンス。</param>
-        public TreeNode(T1 item, AvlTree<T1> tree)
+        /// <param name="tree">このノードが属する<see cref="AvlTree{T}"/>インスタンス。</param>
+        public Node(T item, AvlTree<T> tree)
         {
             Value = item;
-            Level = 1;
+            Height = 1;
             Count = 1;
             Tree = tree;
         }
+
         /// <summary>
-        /// このノードが属する<see cref="AvlTree{T1}"/>インスタンスを取得します。
+        /// このノードが属する<see cref="AvlTree{T}"/>インスタンスを取得します。
         /// </summary>
-        public AvlTree<T1> Tree { get; private set; }
+        public AvlTree<T> Tree { get; private set; }
+
         /// <summary>
         /// ノードの値を読み取り専用で取得します。
         /// </summary>
-        public T1 Value { get; private set; }
+        public T Value { get; private set; }
+
         /// <summary>
         /// 親ノードを取得または設定します。
         /// </summary>
-        public TreeNode Parent { get; private set; }
+        public Node Parent { get; private set; }
+
         /// <summary>
         /// 左の子ノードを取得または設定します。
         /// </summary>
-        public TreeNode Left { get; private set; }
+        public Node Left { get; private set; }
+
         /// <summary>
         /// 右の子ノードを取得または設定します。
         /// </summary>
-        public TreeNode Right { get; private set; }
+        public Node Right { get; private set; }
+
         /// <summary>
-        /// このノードの高さ（レベル）を取得または設定します。
+        /// このノードの高さを取得または設定します。
         /// </summary>
-        int Level { get; set; }
+        int Height { get; set; }
+
         /// <summary>
         /// このノードをルートとする部分木のノード数を取得します。
         /// </summary>
@@ -189,17 +232,33 @@ public class AvlTree<T1> where T1 : IComparable<T1>
         /// このノードまたはその子孫に新しい要素を追加します。同じ要素が既に存在する場合は、何も行いません。
         /// </summary>
         /// <param name="item">追加する要素。</param>
-        public void Add(T1 item)
+        public void Add(T item)
         {
-            var compare = item.CompareTo(Value);
-            if (compare < 0)
+            var compareResult = item.CompareTo(Value);
+            if (compareResult < 0)
+            {
                 if (Left == null)
-                    ((Left = new TreeNode(item, Tree)).Parent = this).Reconstruct(true);
-                else Left.Add(item);
+                {
+                    Left = new Node(item, Tree) { Parent = this };
+                    Rebalance(true);
+                }
+                else
+                {
+                    Left.Add(item);
+                }
+            }
             else
+            {
                 if (Right == null)
-                ((Right = new TreeNode(item, Tree)).Parent = this).Reconstruct(true);
-            else Right.Add(item);
+                {
+                    Right = new Node(item, Tree) { Parent = this };
+                    Rebalance(true);
+                }
+                else
+                {
+                    Right.Add(item);
+                }
+            }
         }
 
         /// <summary>
@@ -217,217 +276,327 @@ public class AvlTree<T1> where T1 : IComparable<T1>
         /// </summary>
         /// <param name="item">検索する要素。</param>
         /// <returns>指定した要素がこのノードまたはその子孫に含まれている場合は<c>true</c>。それ以外の場合は<c>false</c>。</returns>
-        public bool Contains(T1 item)
+        public bool Contains(T item)
         {
-            var compare = item.CompareTo(Value);
-            if (compare < 0)
+            var compareResult = item.CompareTo(Value);
+            if (compareResult < 0)
+            {
                 return Left != null && Left.Contains(item);
-            else if (compare == 0)
+            }
+            else if (compareResult == 0)
+            {
                 return true;
+            }
             else
+            {
                 return Right != null && Right.Contains(item);
+            }
         }
 
         /// <summary>
         /// このノードをルートとする部分木の最小の値を取得します。
         /// </summary>
         /// <returns>部分木の最小の値。</returns>
-        public T1 GetMin() => Left == null ? Value : Left.GetMin();
+        public T GetMin() => Left != null ? Left.GetMin() : Value;
+
         /// <summary>
         /// このノードをルートとする部分木の最大の値を取得します。
         /// </summary>
         /// <returns>部分木の最大の値。</returns>
-        public T1 GetMax() => Right == null ? Value : Right.GetMax();
+        public T GetMax() => Right != null ? Right.GetMax() : Value;
 
         /// <summary>
         /// 指定した値よりも小さい最大の値をこの部分木内で検索します。
         /// </summary>
         /// <param name="item">基準となる値。</param>
-        /// <param name="maxKey">現在見つかっている最大のキー。</param>
-        /// <returns>指定した値よりも小さい最大のキー。存在しない場合は <paramref name="maxKey"/> を返します。</returns>
-        public T1 GetBelow(T1 item, T1 maxKey)
+        /// <param name="currentMax">現在見つかっている最大のキー。</param>
+        /// <returns>指定した値よりも小さい最大のキー。存在しない場合は <paramref name="currentMax"/> を返します。</returns>
+        public T FindLessThan(T item, T currentMax)
         {
-            var compare = item.CompareTo(Value);
+            var compareResult = item.CompareTo(Value);
 
-            if (compare > 0 && Value.CompareTo(maxKey) >= 0)
-                maxKey = Value;
+            if (compareResult > 0 && Value.CompareTo(currentMax) >= 0)
+            {
+                currentMax = Value;
+            }
 
-            if (compare <= 0)
-                return Left == null ? maxKey : Left.GetBelow(item, maxKey);
+            if (compareResult <= 0)
+            {
+                if (Left != null)
+                {
+                    return Left.FindLessThan(item, currentMax);
+                }
+                return currentMax;
+            }
             else
-                return Right == null ? maxKey : Right.GetBelow(item, maxKey);
+            {
+                if (Right != null)
+                {
+                    return Right.FindLessThan(item, currentMax);
+                }
+                return currentMax;
+            }
         }
 
         /// <summary>
         /// 指定した値よりも大きい最小の値をこの部分木内で検索します。
         /// </summary>
         /// <param name="item">基準となる値。</param>
-        /// <param name="minKey">現在見つかっている最小のキー。</param>
-        /// <returns>指定した値よりも大きい最小のキー。存在しない場合は <paramref name="minKey"/> を返します。</returns>
-        public T1 GetAbove(T1 item, T1 minKey)
+        /// <param name="currentMin">現在見つかっている最小のキー。</param>
+        /// <returns>指定した値よりも大きい最小のキー。存在しない場合は <paramref name="currentMin"/> を返します。</returns>
+        public T FindGreaterThan(T item, T currentMin)
         {
-            var compare = item.CompareTo(Value);
+            var compareResult = item.CompareTo(Value);
 
-            if (compare < 0 && Value.CompareTo(minKey) <= 0)
-                minKey = Value;
+            if (compareResult < 0 && Value.CompareTo(currentMin) <= 0)
+            {
+                currentMin = Value;
+            }
 
-            if (compare >= 0)
-                return Right == null ? minKey : Right.GetAbove(item, minKey);
+            if (compareResult >= 0)
+            {
+                if (Right != null)
+                {
+                    return Right.FindGreaterThan(item, currentMin);
+                }
+                return currentMin;
+            }
             else
-                return Left == null ? minKey : Left.GetAbove(item, minKey);
+            {
+                if (Left != null)
+                {
+                    return Left.FindGreaterThan(item, currentMin);
+                }
+                return currentMin;
+            }
         }
-
-        /// <summary>
-        /// このコレクションが読み取り専用かどうかを示す値を取得します。（常に<c>false</c>を返します）
-        /// </summary>
-        public bool IsReadOnly { get { return false; } }
 
         /// <summary>
         /// このノードまたはその子孫から指定した要素を削除します。要素が見つかった場合は<c>true</c>を返します。
         /// </summary>
         /// <param name="item">削除する要素。</param>
-        /// <returns>要素が削除された場合は<c>true</c>。それ以外の場合は<c>false</c>。</returns>
-        public bool Remove(T1 item)
+        /// <returns>要素が削除された場合は<c>true</c>。それ以外の場合は<c>false</c>.</returns>
+        public bool Remove(T item)
         {
-            var compare = item.CompareTo(Value);
-            if (compare == 0)
+            var compareResult = item.CompareTo(Value);
+            if (compareResult == 0)
             {
-                // 子ノードがない場合
                 if (Left == null && Right == null)
+                {
                     if (Parent != null)
                     {
-                        if (Parent.Left == this) Parent.Left = null;
-                        else Parent.Right = null;
-                        Parent.Reconstruct(true);
+                        if (Parent.Left == this)
+                        {
+                            Parent.Left = null;
+                        }
+                        else
+                        {
+                            Parent.Right = null;
+                        }
+                        Parent.Rebalance(true);
                     }
-                    else Tree.RootNode = null;
-                // 子ノードが1つだけの場合
+                    else
+                    {
+                        Tree.RootNode = null;
+                    }
+                }
                 else if (Left == null || Right == null)
                 {
-                    var child = Left == null ? Right : Left;
+                    var child = Left ?? Right;
                     if (Parent != null)
                     {
-                        if (Parent.Left == this) Parent.Left = child;
-                        else Parent.Right = child;
-                        (child.Parent = Parent).Reconstruct(true);
+                        if (Parent.Left == this)
+                        {
+                            Parent.Left = child;
+                        }
+                        else
+                        {
+                            Parent.Right = child;
+                        }
+                        child.Parent = Parent;
+                        Parent.Rebalance(true);
                     }
-                    else (Tree.RootNode = child).Parent = null;
+                    else
+                    {
+                        Tree.RootNode = child;
+                        child.Parent = null;
+                    }
                 }
-                // 子ノードが2つある場合
                 else
                 {
-                    // 左部分木の最大値と値を交換して削除
-                    var replace = Left;
-                    while (replace.Right != null) replace = replace.Right;
-                    var temp = Value;
-                    Value = replace.Value;
-                    replace.Value = temp;
-                    return replace.Remove(replace.Value);
+                    var replacement = Left;
+                    while (replacement.Right != null)
+                    {
+                        replacement = replacement.Right;
+                    }
+                    Value = replacement.Value;
+                    return replacement.Remove(replacement.Value);
                 }
                 Parent = Left = Right = null;
                 return true;
             }
-            else if (compare < 0)
-                return Left == null ? false : Left.Remove(item);
+            else if (compareResult < 0)
+            {
+                return Left?.Remove(item) ?? false;
+            }
             else
-                return Right == null ? false : Right.Remove(item);
+            {
+                return Right?.Remove(item) ?? false;
+            }
         }
 
         /// <summary>
         /// AVL木のバランスを再構築します。
         /// </summary>
         /// <param name="recursive">親ノードに対しても再帰的に再構築を行うかどうか。</param>
-        void Reconstruct(bool recursive)
+        void Rebalance(bool recursive)
         {
             Count = 1;
 
-            int leftLevel = 0, rightLevel = 0;
+            int leftHeight = Left?.Height ?? 0;
+            int rightHeight = Right?.Height ?? 0;
+
             if (Left != null)
             {
-                leftLevel = Left.Level;
                 Count += Left.Count;
             }
             if (Right != null)
             {
-                rightLevel = Right.Level;
                 Count += Right.Count;
             }
 
-            // 左部分木が右部分木より2以上高い場合（左偏り）
-            if (leftLevel - rightLevel > 1)
+            if (leftHeight - rightHeight > 1)
             {
-                var leftLeft = Left.Left == null ? 0 : Left.Left.Level;
-                var leftRight = Left.Right == null ? 0 : Left.Right.Level;
-                if (leftLeft >= leftRight)
+                var leftLeftHeight = Left.Left?.Height ?? 0;
+                var leftRightHeight = Left.Right?.Height ?? 0;
+                if (leftLeftHeight >= leftRightHeight)
                 {
-                    // 右回転（RR回転）
-                    Left.Elevate();
-                    Reconstruct(true);
+                    Left.RotateRight();
+                    Rebalance(true);
                 }
                 else
                 {
-                    // 左右回転（LR回転）
                     var pivot = Left.Right;
-                    pivot.Elevate(); pivot.Elevate();
-                    pivot.Left.Reconstruct(false);
-                    pivot.Right.Reconstruct(true);
+                    pivot.RotateLeft();
+                    pivot.RotateRight();
+                    pivot.Left.Rebalance(false);
+                    pivot.Right.Rebalance(true);
                 }
             }
-            // 右部分木が左部分木より2以上高い場合（右偏り）
-            else if (rightLevel - leftLevel > 1)
+            else if (rightHeight - leftHeight > 1)
             {
-                var rightRight = Right.Right == null ? 0 : Right.Right.Level;
-                var rightLeft = Right.Left == null ? 0 : Right.Left.Level;
-                if (rightRight >= rightLeft)
+                var rightRightHeight = Right.Right?.Height ?? 0;
+                var rightLeftHeight = Right.Left?.Height ?? 0;
+                if (rightRightHeight >= rightLeftHeight)
                 {
-                    // 左回転（LL回転）
-                    Right.Elevate();
-                    Reconstruct(true);
+                    Right.RotateLeft();
+                    Rebalance(true);
                 }
                 else
                 {
-                    // 右左回転（RL回転）
                     var pivot = Right.Left;
-                    pivot.Elevate(); pivot.Elevate();
-                    pivot.Left.Reconstruct(false);
-                    pivot.Right.Reconstruct(true);
+                    pivot.RotateRight();
+                    pivot.RotateLeft();
+                    pivot.Left.Rebalance(false);
+                    pivot.Right.Rebalance(true);
                 }
             }
             else
             {
-                // 高さを更新
-                Level = Math.Max(leftLevel, rightLevel) + 1;
+                Height = Math.Max(leftHeight, rightHeight) + 1;
                 if (Parent != null && recursive)
-                    Parent.Reconstruct(true);
+                {
+                    Parent.Rebalance(true);
+                }
             }
         }
 
         /// <summary>
-        /// ノードを1レベル上昇させます（AVL木の回転操作の一部）。
+        /// ノードを右回転させます。
         /// </summary>
-        void Elevate()
+        void RotateRight()
         {
             var root = Parent;
-            var parent = root.Parent;
-            if ((Parent = parent) == null) Tree.RootNode = this;
+            var parent = root?.Parent;
+            if ((Parent = parent) == null)
+            {
+                Tree.RootNode = this;
+            }
             else
             {
-                if (parent.Left == root) parent.Left = this;
-                else parent.Right = this;
+                if (parent.Left == root)
+                {
+                    parent.Left = this;
+                }
+                else
+                {
+                    parent.Right = this;
+                }
             }
 
             if (root.Left == this)
             {
                 root.Left = Right;
-                if (Right != null) Right.Parent = root;
+                if (Right != null)
+                {
+                    Right.Parent = root;
+                }
                 Right = root;
                 root.Parent = this;
             }
             else
             {
                 root.Right = Left;
-                if (Left != null) Left.Parent = root;
+                if (Left != null)
+                {
+                    Left.Parent = root;
+                }
                 Left = root;
+                root.Parent = this;
+            }
+        }
+
+        /// <summary>
+        /// ノードを左回転させます。
+        /// </summary>
+        void RotateLeft()
+        {
+            var root = Parent;
+            var parent = root?.Parent;
+            if ((Parent = parent) == null)
+            {
+                Tree.RootNode = this;
+            }
+            else
+            {
+                if (parent.Left == root)
+                {
+                    parent.Left = this;
+                }
+                else
+                {
+                    parent.Right = this;
+                }
+            }
+
+            if (root.Right == this)
+            {
+                root.Right = Left;
+                if (Left != null)
+                {
+                    Left.Parent = root;
+                }
+                Left = root;
+                root.Parent = this;
+            }
+            else
+            {
+                root.Left = Right;
+                if (Right != null)
+                {
+                    Right.Parent = root;
+                }
+                Right = root;
                 root.Parent = this;
             }
         }
@@ -439,30 +608,46 @@ public class AvlTree<T1> where T1 : IComparable<T1>
         /// <returns>指定したインデックスにある要素。</returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> が範囲外の場合。</exception>
         /// <exception cref="InvalidOperationException">インデックスへの設定操作はサポートされていません。</exception>
-        public T1 this[int index]
+        public T this[int index]
         {
             get
             {
                 if (Left != null)
-                    if (index < Left.Count) return Left[index];
-                    else index -= Left.Count;
-                if (index-- == 0) return Value;
+                {
+                    if (index < Left.Count)
+                    {
+                        return Left[index];
+                    }
+                    index -= Left.Count;
+                }
+                if (index-- == 0)
+                {
+                    return Value;
+                }
                 if (Right != null)
-                    if (index < Right.Count) return Right[index];
-                throw new ArgumentOutOfRangeException("index");
+                {
+                    if (index < Right.Count)
+                    {
+                        return Right[index];
+                    }
+                }
+                throw new ArgumentOutOfRangeException(nameof(index), "指定されたインデックスは範囲外です。");
             }
-            set { throw new InvalidOperationException("インデックスによる設定操作はサポートされていません。"); }
+            set
+            {
+                throw new InvalidOperationException("インデックスによる設定操作はサポートされていません。");
+            }
         }
 
         /// <summary>
         /// このノードをルートとする部分木の要素を昇順で指定されたリストに追加します（中間順巡回）。
         /// </summary>
-        /// <param name="queue">要素を追加するリスト。</param>
-        public void InOrder(List<T1> queue)
+        /// <param name="result">要素を追加するリスト。</param>
+        public void InOrderTraversal(List<T> result)
         {
-            Left?.InOrder(queue);
-            queue.Add(Value);
-            Right?.InOrder(queue);
+            Left?.InOrderTraversal(result);
+            result.Add(Value);
+            Right?.InOrderTraversal(result);
         }
     }
 }
