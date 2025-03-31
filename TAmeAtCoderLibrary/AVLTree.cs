@@ -167,7 +167,7 @@ public class AvlTree<T> where T : IComparable<T>
                 return RootNode[index];
             }
 
-            throw new ArgumentOutOfRangeException(nameof(index), "指定されたインデックスは範囲外です。");
+            throw new ArgumentOutOfRangeException(nameof(index), $"指定されたインデックス {index} は範囲外です。有効な範囲は 0 ~ {Count - 1} です。");
         }
         set
         {
