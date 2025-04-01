@@ -63,6 +63,22 @@ public class AvlTreeDictionary<T1, T2> where T1 : IComparable<T1>
             dic[key] = value;
     }
 
+    /// <summary>インデクサー - 指定したキーに対応する値を取得または設定します</summary>
+    /// <param name="key">アクセスするキー</param>
+    /// <returns>指定されたキーに対応する値</returns>
+    /// <exception cref="KeyNotFoundException">キーが見つからない場合にスローされます</exception>
+    public T2 this[T1 key]
+    {
+        get => dic[key];
+        set
+        {
+            if (!dic.ContainsKey(key))
+                Add(key, value);
+            else
+                dic[key] = value;
+        }
+    }
+
     /// <summary>指定されたキーとそれに対応する値を辞書から削除します</summary>
     /// <param name="key">削除するキー</param>
     public void Remove(T1 key)
@@ -75,17 +91,17 @@ public class AvlTreeDictionary<T1, T2> where T1 : IComparable<T1>
     /// <param name="key">基準となるキー</param>
     /// <param name="minKey">取得できない場合に返すデフォルト値</param>
     /// <returns>指定されたキーより小さい最大のキー、または存在しない場合はminKey</returns>
-    public T1 GetBelowKey(T1 key, T1 minKey) => avl.GetBelow(key, minKey);
+    public T1 GetBelowKey(T1 key, T1 minKey) => avl.FindLessThan(key, minKey);
 
     /// <summary>指定されたキーより大きい最小のキーを取得します</summary>
     /// <param name="key">基準となるキー</param>
     /// <param name="maxKey">取得できない場合に返すデフォルト値</param>
     /// <returns>指定されたキーより大きい最小のキー、または存在しない場合はmaxKey</returns>
-    public T1 GetNextKey(T1 key, T1 maxKey) => avl.GetNext(key, maxKey);
+    public T1 GetNextKey(T1 key, T1 maxKey) => avl.FindGreaterThan(key, maxKey);
 
     /// <summary>キーを昇順に並べたリストを取得します</summary>
     /// <returns>順序付けされたキーのリスト</returns>
-    public List<T1> InOrderKeys() => avl.InOrder();
+    public List<T1> InOrderKeys() => avl.ToSortedList();
 
     /// <summary>キーの昇順に対応する値のリストを取得します</summary>
     /// <returns>キーの昇順に対応する値のリスト</returns>
@@ -98,5 +114,28 @@ public class AvlTreeDictionary<T1, T2> where T1 : IComparable<T1>
             list2.Add(dic[key]);
 
         return list2;
+    }
+
+    /// <summary>指定されたキーに対応する値を取得します。キーが見つかったかどうかを示す値を返します</summary>
+    /// <param name="key">検索するキー</param>
+    /// <param name="value">指定されたキーに対応する値。キーが存在しない場合はdefault(T2)</param>
+    /// <returns>辞書内に指定されたキーが存在する場合はtrue、それ以外はfalse</returns>
+    public bool TryGetValue(T1 key, out T2 value)
+    {
+        if (dic.ContainsKey(key))
+        {
+            value = dic[key];
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    /// <summary>辞書からすべての要素を削除します</summary>
+    public void Clear()
+    {
+        avl.Clear();
+        dic.Clear();
     }
 }
