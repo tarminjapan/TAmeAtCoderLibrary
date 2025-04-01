@@ -89,7 +89,7 @@ public class AvlTree<T> where T : IComparable<T>
     /// <param name="item">基準となる値。</param>
     /// <param name="currentMax">現在の最大値。</param>
     /// <returns>指定した値よりも小さい最大の値を返します。</returns>
-    private T FindLessThan(T item, T currentMax) => RootNode != null ? RootNode.FindLessThan(item, currentMax) : currentMax;
+    public T FindLessThan(T item, T currentMax) => RootNode != null ? RootNode.FindLessThan(item, currentMax) : currentMax;
 
     /// <summary>
     /// 指定した値よりも大きい最小の値を内部的に取得します。
@@ -97,7 +97,7 @@ public class AvlTree<T> where T : IComparable<T>
     /// <param name="item">基準となる値。</param>
     /// <param name="currentMin">現在の最小値。</param>
     /// <returns>指定した値よりも大きい最小の値を返します。</returns>
-    private T FindGreaterThan(T item, T currentMin) => RootNode != null ? RootNode.FindGreaterThan(item, currentMin) : currentMin;
+    public T FindGreaterThan(T item, T currentMin) => RootNode != null ? RootNode.FindGreaterThan(item, currentMin) : currentMin;
 
     /// <summary>
     /// 指定したキー以下の最大のキーを返します。
