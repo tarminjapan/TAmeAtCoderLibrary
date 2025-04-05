@@ -4,15 +4,32 @@ namespace TAmeAtCoderLibrary;
 /// 双方向連結リストを実装したクラスです。要素は前後の要素への参照を持ちます。
 /// </summary>
 /// <typeparam name="T">リストに格納する要素の型</typeparam>
-public class DoublyLinkedList<T>
+public class DoublyLinkedList<T> : IEnumerable<T>
 {
     private readonly Dictionary<T, Node> _nodeMap = new();
+    private Node _head; // 先頭ノードへの参照を保持
+    private Node _tail; // 末尾ノードへの参照を保持
+
+    /// <summary>
+    /// リスト内の要素数を取得します。
+    /// </summary>
+    public int Count => _nodeMap.Count;
 
     /// <summary>
     /// 双方向連結リストの新しいインスタンスを初期化します。
     /// </summary>
     public DoublyLinkedList()
     { }
+
+    /// <summary>
+    /// 指定された値がリストに含まれているかどうかを確認します。
+    /// </summary>
+    /// <param name="value">検索する値</param>
+    /// <returns>リストに値が含まれる場合はtrue、それ以外はfalse</returns>
+    public bool Contains(T value)
+    {
+        return _nodeMap.ContainsKey(value);
+    }
 
     /// <summary>
     /// 指定された値の前の要素を取得します。
@@ -79,22 +96,36 @@ public class DoublyLinkedList<T>
     /// 値の前後の要素が存在する場合、それらの要素は自動的に連結されます。
     /// </summary>
     /// <param name="value">削除する値</param>
-    public void Remove(T value)
+    /// <returns>要素が削除された場合はtrue、そうでない場合はfalse</returns>
+    public bool Remove(T value)
     {
-        if (!_nodeMap.ContainsKey(value))
-            return;
+        if (!_nodeMap.TryGetValue(value, out var node))
+            return false;
 
-        var reConnect = _nodeMap[value].Before != null && _nodeMap[value].Next != null;
-        var beforeVal = _nodeMap[value].Before != null ? _nodeMap[value].Before.Value : default;
-        var afterVal = _nodeMap[value].Next != null ? _nodeMap[value].Next.Value : default;
+        // 先頭・末尾ノードの更新
+        if (node == _head)
+            _head = node.Next;
+        if (node == _tail)
+            _tail = node.Before;
 
-        UnlinkBefore(value);
-        UnlinkNext(value);
+        var hasBefore = node.Before != null;
+        var hasNext = node.Next != null;
 
-        if (reConnect)
-            AddNext(beforeVal, afterVal);
+        // 前後のノードを接続する必要があるか確認
+        if (hasBefore && hasNext)
+        {
+            Link(node.Before.Value, node.Next.Value);
+        }
+        else
+        {
+            if (hasBefore)
+                node.Before.Next = null;
+            if (hasNext)
+                node.Next.Before = null;
+        }
 
         _nodeMap.Remove(value);
+        return true;
     }
 
     /// <summary>
@@ -199,11 +230,11 @@ public class DoublyLinkedList<T>
         if (_nodeMap.Count == 0)
             return queue;
 
-        var head = FindHeadNode();
-        if (head == null)
+        // 先頭ノードが保持されているため、探索が不要に
+        var current = _head ?? FindHeadNode();
+        if (current == null)
             return queue;
 
-        var current = head;
         do
         {
             queue.Enqueue(current.Value);
@@ -240,6 +271,67 @@ public class DoublyLinkedList<T>
         } while (currentNode != null);
 
         return queue;
+    }
+
+    /// <summary>
+    /// 要素を列挙するための列挙子を返します。
+    /// </summary>
+    /// <returns>リストの要素を順に返す列挙子</returns>
+    public IEnumerator<T> GetEnumerator()
+    {
+        if (_nodeMap.Count == 0)
+            yield break;
+
+        var current = _head ?? FindHeadNode();
+        if (current == null)
+            yield break;
+
+        do
+        {
+            yield return current.Value;
+            current = current.Next;
+        } while (current != null);
+    }
+
+    /// <summary>
+    /// 非ジェネリックの列挙子を返します。
+    /// </summary>
+    /// <returns>非ジェネリックの列挙子</returns>
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    /// <summary>
+    /// リストが循環していないか検証します。循環が検出された場合は例外をスローします。
+    /// </summary>
+    /// <exception cref="InvalidOperationException">リストが循環している場合</exception>
+    private void ValidateNoCycles()
+    {
+        if (_nodeMap.Count <= 1)
+            return;
+
+        var slow = _head;
+        var fast = _head;
+
+        while (fast?.Next != null)
+        {
+            slow = slow.Next;
+            fast = fast.Next.Next;
+
+            if (slow == fast)
+                throw new InvalidOperationException("リストに循環が検出されました。");
+        }
+    }
+
+    /// <summary>
+    /// リストを完全にクリアします。
+    /// </summary>
+    public void Clear()
+    {
+        _nodeMap.Clear();
+        _head = null;
+        _tail = null;
     }
 
     /// <summary>

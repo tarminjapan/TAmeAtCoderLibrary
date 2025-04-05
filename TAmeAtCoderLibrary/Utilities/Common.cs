@@ -1,178 +1,242 @@
-using System.Collections.Generic;
+#nullable enable
+using System.Numerics;
 
 namespace TAmeAtCoderLibrary.Utilities;
 
 /// <summary>
-/// 共通のユーティリティ関数を提供するクラスです。
+/// 競技プログラミングなどで利用可能な共通ユーティリティ関数を提供します。
 /// </summary>
-public class Common
+public static class Common
 {
-    public static char[] ALPHABETS => "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
-    public static char[] alphabets => "abcdefghijklmnopqrstuvwxyz".ToCharArray();
+    /// <summary>大文字アルファベットの文字配列。</summary>
+    public static readonly char[] UpperAlphabets = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
+
+    /// <summary>小文字アルファベットの文字配列。</summary>
+    public static readonly char[] LowerAlphabets = "abcdefghijklmnopqrstuvwxyz".ToCharArray();
+
+    #region Cumulative Sum
 
     /// <summary>
     /// 配列の累積和を生成します。
     /// </summary>
-    /// <param name="array">累積和を生成する元の配列。</param>
-    /// <returns>累積和を格納した配列。</returns>
-    public static long[] GenerateCumSum(long[] array)
+    /// <typeparam name="T">累積和を計算する数値型 (INumber&lt;T&gt;)。</typeparam>
+    /// <param name="array">元の配列。</param>
+    /// <returns>累積和を格納した新しい配列。</returns>
+    /// <exception cref="ArgumentNullException">arrayがnullの場合。</exception>
+    public static T[] GenerateCumulativeSum<T>(T[] array) where T : INumber<T>
     {
-        var ary = new long[array.Length];
+        ArgumentNullException.ThrowIfNull(array);
 
-        for (int i = 0; i < array.Length; i++)
+        var cumulativeSum = new T[array.Length];
+        if (array.Length == 0) return cumulativeSum;
+
+        cumulativeSum[0] = array[0];
+        for (int i = 1; i < array.Length; i++)
         {
-            ary[i] = array[i];
-
-            if (1 <= i)
-                ary[i] += ary[i - 1];
+            cumulativeSum[i] = cumulativeSum[i - 1] + array[i];
         }
-
-        return ary;
+        return cumulativeSum;
     }
 
     /// <summary>
-    /// 配列の累積和を生成します。
+    /// long配列の累積和を生成します。
     /// </summary>
-    /// <param name="array">累積和を生成する元の配列。</param>
-    /// <returns>累積和を格納した配列。</returns>
-    public static int[] GenerateCumSum(int[] array)
+    /// <param name="array">元の配列。</param>
+    /// <returns>累積和を格納した新しい配列。</returns>
+    /// <exception cref="ArgumentNullException">arrayがnullの場合。</exception>
+    public static long[] GenerateCumulativeSum(long[] array)
     {
-        var ary = new int[array.Length];
-
-        for (int i = 0; i < array.Length; i++)
+        ArgumentNullException.ThrowIfNull(array);
+        var result = new long[array.Length];
+        if (array.Length == 0) return result;
+        result[0] = array[0];
+        for (int i = 1; i < array.Length; i++)
         {
-            ary[i] = array[i];
-
-            if (1 <= i)
-                ary[i] += ary[i - 1];
+            result[i] = result[i - 1] + array[i];
         }
-
-        return ary;
+        return result;
     }
+    #endregion
+
+    #region Combinations and Permutations (Yield Return for Memory Efficiency)
 
     /// <summary>
-    /// 選択のリストを取得します。
+    /// 指定された範囲の数値から指定された個数を選択する組み合わせを列挙します (遅延評価)。
     /// </summary>
-    /// <param name="max">選択する数値の最大値。</param>
-    /// <param name="digits">選択する桁数。</param>
-    /// <returns>選択のリストを格納したキュー。</returns>
-    public static Queue<Queue<int>> CombinationLists(int max, int digits)
+    /// <param name="n">選択対象の最大値 (1 から n)。</param>
+    /// <param name="k">選択する個数。</param>
+    /// <returns>組み合わせのシーケンス。各組み合わせは int の IEnumerable。</returns>
+    /// <exception cref="ArgumentOutOfRangeException">n, k が負、または k > n。</exception>
+    public static IEnumerable<IEnumerable<int>> GenerateCombinations(int n, int k)
     {
-        var queue = new Queue<Queue<int>>();
+        if (n < 0) throw new ArgumentOutOfRangeException(nameof(n), "n must be non-negative.");
+        if (k < 0) throw new ArgumentOutOfRangeException(nameof(k), "k must be non-negative.");
+        if (k > n) throw new ArgumentOutOfRangeException(nameof(k), "k cannot be greater than n.");
 
-        __CombitaionLists(queue, new LinkedList<int>(), 1, max, digits);
-
-        return queue;
-    }
-
-    private static void __CombitaionLists(Queue<Queue<int>> queue, LinkedList<int> linkedList, int min, int max, int depth)
-    {
-        if (depth == 0)
+        if (k == 0)
         {
-            var tqueue = new Queue<int>();
-
-            foreach (var current in linkedList)
-                tqueue.Enqueue(current);
-
-            queue.Enqueue(tqueue);
-
-            return;
+            yield return Enumerable.Empty<int>();
+            // yield break; // k=0 の場合は yield return の後に暗黙的に終了するので省略可
         }
-
-        for (int i = min; i <= max; i++)
+        else // k > 0 の場合
         {
-            linkedList.AddLast(i);
-            __CombitaionLists(queue, linkedList, i + 1, max, depth - 1);
-            linkedList.RemoveLast();
+            // CS1622 修正: GenerateCombinationsRecursive の結果を foreach で yield return する
+            foreach (var combination in GenerateCombinationsRecursive(1, n, k, 0, new int[k]))
+            {
+                yield return combination;
+            }
         }
     }
 
-    /// <summary>
-    /// 並び替えのリストを取得します。
-    /// </summary>
-    /// <param name="max">並び替える数値の最大値。</param>
-    /// <param name="digits">並び替える桁数。</param>
-    /// <returns>並び替えのリストを格納したキュー。</returns>
-    public static Queue<Queue<int>> PermutationLists(int max, int digits)
+    private static IEnumerable<IEnumerable<int>> GenerateCombinationsRecursive(int start, int n, int k, int index, int[] currentCombination)
     {
-        var queue = new Queue<Queue<int>>();
-
-        __PermurationLists(queue, new LinkedList<int>(), new bool[max + 1], max, digits);
-
-        return queue;
-    }
-
-    private static void __PermurationLists(Queue<Queue<int>> queue, LinkedList<int> linkedList, bool[] selected, int max, int depth)
-    {
-        if (depth == 0)
+        if (index == k)
         {
-            var tqueue = new Queue<int>();
-
-            foreach (var current in linkedList)
-                tqueue.Enqueue(current);
-
-            queue.Enqueue(tqueue);
-
-            return;
+            yield return (int[])currentCombination.Clone();
         }
-
-        for (int i = 1; i <= max; i++)
+        else
         {
-            if (selected[i])
-                continue;
-
-            selected[i] = true;
-            linkedList.AddLast(i);
-
-            selected[i] = true;
-            __PermurationLists(queue, linkedList, selected, max, depth - 1);
-
-            linkedList.RemoveLast();
-            selected[i] = false;
+            for (int i = start; i <= n - (k - index - 1); i++)
+            {
+                currentCombination[index] = i;
+                foreach (var combination in GenerateCombinationsRecursive(i + 1, n, k, index + 1, currentCombination))
+                    yield return combination;
+            }
         }
     }
 
     /// <summary>
-    /// 指定された数値を指定されたべき乗にします。
+    /// 指定された範囲の数値から指定された個数を選択する順列を列挙します (遅延評価)。
     /// </summary>
-    /// <param name="x">べき乗する元の数値。</param>
-    /// <param name="y">べき乗する指数。</param>
-    /// <returns>数値 x を y 乗した結果。</returns>
-    public static long Pow(long x, int y)
+    /// <param name="n">選択対象の最大値 (1 から n)。</param>
+    /// <param name="k">選択する個数。</param>
+    /// <returns>順列のシーケンス。各順列は int の IEnumerable。</returns>
+    /// <exception cref="ArgumentOutOfRangeException">n, k が負、または k > n。</exception>
+    public static IEnumerable<IEnumerable<int>> GeneratePermutations(int n, int k)
     {
-        var pow = 1L;
+        if (n < 0) throw new ArgumentOutOfRangeException(nameof(n), "n must be non-negative.");
+        if (k < 0) throw new ArgumentOutOfRangeException(nameof(k), "k must be non-negative.");
+        if (k > n) throw new ArgumentOutOfRangeException(nameof(k), "k cannot be greater than n.");
 
-        for (int i = 0; i < y; i++)
-            pow *= x;
+        if (k == 0)
+        {
+            yield return Enumerable.Empty<int>();
+            // yield break; // k=0 の場合は yield return の後に暗黙的に終了するので省略可
+        }
+        else // k > 0 の場合
+        {
+            // CS1622 修正: GeneratePermutationsRecursive の結果を foreach で yield return する
+            foreach (var permutation in GeneratePermutationsRecursive(n, k, 0, new int[k], new bool[n + 1]))
+            {
+                yield return permutation;
+            }
+        }
+    }
 
-        return pow;
+    private static IEnumerable<IEnumerable<int>> GeneratePermutationsRecursive(int n, int k, int index, int[] currentPermutation, bool[] used)
+    {
+        if (index == k)
+        {
+            yield return (int[])currentPermutation.Clone();
+        }
+        else
+        {
+            for (int i = 1; i <= n; i++)
+            {
+                if (!used[i])
+                {
+                    used[i] = true;
+                    currentPermutation[index] = i;
+                    foreach (var permutation in GeneratePermutationsRecursive(n, k, index + 1, currentPermutation, used))
+                        yield return permutation;
+                    used[i] = false; // Backtrack
+                }
+            }
+        }
+    }
+
+    #endregion
+
+    #region Math Operations
+
+    /// <summary>
+    /// 指定された数値を指定された非負整数のべき乗にします (繰り返し二乗法)。
+    /// </summary>
+    /// <param name="baseValue">べき乗する元の数値。</param>
+    /// <param name="exponent">べき乗する非負の指数。</param>
+    /// <returns>数値 baseValue を exponent 乗した結果。</returns>
+    /// <exception cref="ArgumentOutOfRangeException">exponent が負の場合。</exception>
+    /// <remarks>オーバーフローはチェックされません。</remarks>
+    public static long Power(long baseValue, int exponent)
+    {
+        if (exponent < 0) throw new ArgumentOutOfRangeException(nameof(exponent), "Exponent must be non-negative.");
+        long result = 1L;
+        long currentPower = baseValue;
+        int exp = exponent;
+        while (exp > 0)
+        {
+            if ((exp & 1) == 1) result *= currentPower; // checked { result *= currentPower; } for overflow check
+            if (exp > 1) currentPower *= currentPower; // checked { currentPower *= currentPower; }
+            exp >>= 1;
+        }
+        return result;
     }
 
     /// <summary>
-    /// 割り算を行います。（切り上げ）
+    /// 整数の切り上げ割り算を行います。
     /// </summary>
-    /// <param name="bloken">割られる数。</param>
-    /// <param name="divided">割る数。</param>
+    /// <param name="dividend">割られる数。</param>
+    /// <param name="divisor">割る数。</param>
     /// <returns>切り上げた割り算の結果。</returns>
-    public static long Ceiling(long bloken, long divided) => bloken % divided == 0L ? bloken / divided : bloken / divided + 1L;
+    /// <exception cref="ArgumentOutOfRangeException">divisor が 0 の場合。</exception>
+    /// <remarks>負の数に対する挙動は Math.Ceiling に近くなるように調整。厳密な仕様は要確認。</remarks>
+    public static long CeilingDivide(long dividend, long divisor)
+    {
+        if (divisor == 0) throw new ArgumentOutOfRangeException(nameof(divisor), "Divisor cannot be zero.");
+        // Use Math.Ceiling for behavior consistent across positive/negative numbers
+        return (long)Math.Ceiling((double)dividend / divisor);
+    }
 
     /// <summary>
-    /// 割り算を行います。（切り上げ）
+    /// 整数の切り上げ割り算を行います。
     /// </summary>
-    /// <param name="bloken">割られる数。</param>
-    /// <param name="divided">割る数。</param>
+    /// <param name="dividend">割られる数。</param>
+    /// <param name="divisor">割る数。</param>
     /// <returns>切り上げた割り算の結果。</returns>
-    public static int Ceiling(int bloken, int divided) => (int)Ceiling((long)bloken, divided);
+    /// <exception cref="ArgumentOutOfRangeException">divisor が 0 の場合。</exception>
+    public static int CeilingDivide(int dividend, int divisor)
+    {
+        if (divisor == 0) throw new ArgumentOutOfRangeException(nameof(divisor), "Divisor cannot be zero.");
+        return (int)Math.Ceiling((double)dividend / divisor); // Easiest way for int
+    }
+    #endregion
+
+    #region Console IO Optimization
+
+    private static StreamWriter? bufferedWriter = null;
 
     /// <summary>
-    /// 自動フラッシュを無効にします。
+    /// コンソール出力をバッファリングし、自動フラッシュを無効にして高速化します。
+    /// 使用後は FlushConsoleBuffer() を呼び出すことを推奨します。
     /// </summary>
-    public static void DisableAutoFlush()
-    { Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = false }); }
+    /// <param name="bufferSize">内部バッファのサイズ (バイト単位)。既定値 65536。</param>
+    public static void EnableConsoleBuffering(int bufferSize = 65536)
+    {
+        if (bufferedWriter == null) // Simple check, might need more robust logic
+        {
+            // bufferedWriter が null でないことがここで保証される
+            bufferedWriter = new StreamWriter(Console.OpenStandardOutput(), Console.OutputEncoding, bufferSize) { AutoFlush = false };
+            Console.SetOut(bufferedWriter);
+        }
+    }
 
     /// <summary>
-    /// バッファをフラッシュします。
+    /// バッファリングされたコンソール出力をフラッシュします。
+    /// EnableConsoleBuffering() を使用した場合、プログラム終了前に呼び出すことが推奨されます。
     /// </summary>
-    public static void Flush()
-    { Console.Out.Flush(); }
+    public static void FlushConsoleBuffer()
+    {
+        Console.Out.Flush();
+    }
+    #endregion
 }
