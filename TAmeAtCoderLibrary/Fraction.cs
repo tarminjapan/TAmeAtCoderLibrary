@@ -3,7 +3,7 @@ namespace TAmeAtCoderLibrary;
 /// <summary>
 /// 分数を表すクラスです。分子と分母を管理し、基本的な算術演算や比較処理を提供いたします。
 /// </summary>
-public class Fraction : IComparable<Fraction>
+public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
 {
     /// <summary>
     /// 分子：分数の上部の数値を表します。
@@ -29,9 +29,13 @@ public class Fraction : IComparable<Fraction>
     /// 分子と分母を指定して分数オブジェクトを初期化します。
     /// </summary>
     /// <param name="numerator">分子となる整数値。</param>
-    /// <param name="denominator">分母となる整数値。</param>
+    /// <param name="denominator">分母となる整数値。0より大きい値である必要があります。</param>
+    /// <exception cref="DivideByZeroException">分母が0の場合にスローされます。</exception>
     public Fraction(long numerator, long denominator)
     {
+        if (denominator == 0)
+            throw new DivideByZeroException("分母に0を指定することはできません。");
+
         this.Numerator = numerator;
         this.Denominator = denominator;
         Normal();
@@ -55,13 +59,17 @@ public class Fraction : IComparable<Fraction>
     /// <returns>n1とn2の最大公約数を返します。</returns>
     public static long Gcd(long n1, long n2)
     {
-        long a = Math.Max(n1, n2);
-        long b = Math.Min(n1, n2);
+        n1 = Math.Abs(n1);
+        n2 = Math.Abs(n2);
 
-        if (b == 0L)
-            return a;
+        while (n2 != 0)
+        {
+            var temp = n2;
+            n2 = n1 % n2;
+            n1 = temp;
+        }
 
-        return Gcd(b, a % b);
+        return n1;
     }
 
     /// <summary>
@@ -70,7 +78,13 @@ public class Fraction : IComparable<Fraction>
     /// <param name="n1">1つ目の整数値。</param>
     /// <param name="n2">2つ目の整数値。</param>
     /// <returns>n1とn2の最小公倍数を返します。</returns>
-    public static long Lcm(long n1, long n2) => n1 / Gcd(n1, n2) * n2;
+    /// <remarks>オーバーフローを回避するため、計算順序を工夫しています。</remarks>
+    public static long Lcm(long n1, long n2)
+    {
+        if (n1 == 0 || n2 == 0) return 0;
+
+        return Math.Abs(n1) / Gcd(n1, n2) * Math.Abs(n2);
+    }
 
     /// <summary>
     /// 分数を正規化（簡素化）いたします。符号の調整や既約分数への変換を行います。
@@ -112,6 +126,17 @@ public class Fraction : IComparable<Fraction>
             return true;
 
         return false;
+    }
+
+    /// <summary>
+    /// 指定されたオブジェクトが現在のオブジェクトと等しいかどうかを判断します。
+    /// </summary>
+    /// <param name="other">現在のオブジェクトと比較する分数。</param>
+    /// <returns>指定されたオブジェクトが現在のオブジェクトと等しい場合はtrue。</returns>
+    public bool Equals(Fraction other)
+    {
+        if (other is null) return false;
+        return this.Numerator == other.Numerator && this.Denominator == other.Denominator;
     }
 
     /// <summary>
@@ -203,8 +228,12 @@ public class Fraction : IComparable<Fraction>
     /// <param name="a">被除数の分数。</param>
     /// <param name="b">除数の分数。</param>
     /// <returns>除算結果を正規化した分数オブジェクト。</returns>
+    /// <exception cref="DivideByZeroException">除数の分子が0の場合にスローされます。</exception>
     public static Fraction operator /(Fraction a, Fraction b)
     {
+        if (b.Numerator == 0)
+            throw new DivideByZeroException("0で除算することはできません。");
+
         var gcd = Gcd(a.Numerator, b.Numerator);
         var numer = a.Numerator / gcd;
         var denom = b.Numerator / gcd;
@@ -270,11 +299,38 @@ public class Fraction : IComparable<Fraction>
     public static implicit operator Fraction(long a) => new Fraction(a);
 
     /// <summary>
-    /// このオブジェクトのハッシュコードを取得いたします。（未実装のため例外をスローします）
+    /// このオブジェクトのハッシュコードを取得いたします。
     /// </summary>
-    /// <returns>ハッシュコード。</returns>
+    /// <returns>ハッシュコード。既約分数表現に基づいて計算されます。</returns>
     public override int GetHashCode()
     {
-        throw new NotImplementedException();
+        return HashCode.Combine(Numerator, Denominator);
+    }
+
+    /// <summary>
+    /// 分数値を倍精度浮動小数点数として取得します。
+    /// </summary>
+    /// <returns>分数の小数表現。</returns>
+    public double ToDouble()
+    {
+        return (double)Numerator / Denominator;
+    }
+
+    /// <summary>
+    /// 分数値を単精度浮動小数点数として取得します。
+    /// </summary>
+    /// <returns>分数の小数表現。</returns>
+    public float ToSingle()
+    {
+        return (float)Numerator / Denominator;
+    }
+
+    /// <summary>
+    /// 分数値を十進数として取得します。
+    /// </summary>
+    /// <returns>分数の十進数表現。</returns>
+    public decimal ToDecimal()
+    {
+        return (decimal)Numerator / Denominator;
     }
 }

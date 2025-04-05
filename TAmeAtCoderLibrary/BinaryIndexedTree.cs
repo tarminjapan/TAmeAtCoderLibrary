@@ -10,13 +10,13 @@ public class BinaryIndexedTree
     /// Binary Indexed Tree を表す内部データ構造。
     /// List の各要素はツリーの層を表し、各層は long 型の配列です。
     /// </summary>
-    private readonly List<long[]> _Matrix = new List<long[]>();
+    private readonly List<long[]> _Layers = new List<long[]>();
     /// <summary>
     /// 剰余演算用の除数（モジュラス）。
     /// 0 以上の値が設定されている場合、すべての和と更新は、この除数で剰余をとった値になります。
     /// -1 の場合は、剰余演算は適用されません。
     /// </summary>
-    private long _Divisor = -1L;
+    private long _Modulus = -1L;
 
     /// <summary>
     /// <see cref="BinaryIndexedTree"/> クラスの新しいインスタンスを初期化します。
@@ -27,45 +27,74 @@ public class BinaryIndexedTree
     /// </param>
     /// <remarks>
     /// ツリーの構造は、範囲を繰り返し 2 で割るという考え方に基づいて構築されています。
-    /// _Matrix の各層は、キーのバイナリ表現によって定義された特定の範囲の和を格納します。
+    /// _Layers の各層は、キーのバイナリ表現によって定義された特定の範囲の和を格納します。
     /// </remarks>
     public BinaryIndexedTree(int maxKey)
     {
-        var harf = Utilities.Common.Ceiling(maxKey, 2);
-        _Matrix.Add(new long[harf]);
-        maxKey = harf;
-
-        do
-        {
-            harf = Utilities.Common.Ceiling(maxKey, 2);
-            _Matrix.Add(new long[harf]);
-            maxKey = harf;
-        } while (2L <= maxKey);
+        InitializeLayers(maxKey);
     }
 
     /// <summary>
     /// 剰余演算用の除数を指定して、<see cref="BinaryIndexedTree"/> クラスの新しいインスタンスを初期化します。
     /// </summary>
     /// <param name="maxKey">このツリーで使用できる最大キー（インデックス）。</param>
-    /// <param name="divisor">剰余演算に使用する除数。</param>
+    /// <param name="divisor">剰余演算に使用する除数。0より大きな値である必要があります。</param>
     /// <remarks>
     /// 特定の数で剰余演算を行う必要がある場合は、このコンストラクターを使用してください。
     /// 各更新と和の計算は、指定された除数で剰余をとった値になります。
     /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException">divisorが0以下の場合にスローされます。</exception>
     public BinaryIndexedTree(int maxKey, long divisor)
     {
-        var harf = Utilities.Common.Ceiling(maxKey, 2);
-        _Matrix.Add(new long[harf]);
-        maxKey = harf;
+        if (divisor <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(divisor), "Divisor must be greater than zero.");
+        }
+
+        InitializeLayers(maxKey);
+        _Modulus = divisor;
+    }
+
+    /// <summary>
+    /// Binary Indexed Treeの層構造を初期化します。
+    /// </summary>
+    /// <param name="maxKey">最大キー値</param>
+    private void InitializeLayers(int maxKey)
+    {
+        if (maxKey < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxKey), "Maximum key must be non-negative.");
+        }
+
+        var half = Utilities.Common.Ceiling(maxKey, 2);
+        _Layers.Add(new long[half]);
+        maxKey = half;
 
         do
         {
-            harf = Utilities.Common.Ceiling(maxKey, 2);
-            _Matrix.Add(new long[harf]);
-            maxKey = harf;
+            half = Utilities.Common.Ceiling(maxKey, 2);
+            _Layers.Add(new long[half]);
+            maxKey = half;
         } while (2L <= maxKey);
+    }
 
-        _Divisor = divisor;
+    /// <summary>
+    /// 値にモジュロ演算を適用します（必要な場合）。
+    /// </summary>
+    /// <param name="value">モジュロ演算を適用する値</param>
+    /// <returns>モジュロ演算後の値</returns>
+    private long ApplyModulo(long value)
+    {
+        if (_Modulus != -1)
+        {
+            // 負の値の場合にのみ、除数を加えて正の数にする
+            value %= _Modulus;
+            if (value < 0)
+            {
+                value += _Modulus;
+            }
+        }
+        return value;
     }
 
     /// <summary>
@@ -77,23 +106,24 @@ public class BinaryIndexedTree
     /// このメソッドは、指定されたキーを含むツリー内のすべての関連する範囲を更新します。
     /// 除数が設定されている場合、更新は除数で剰余をとった値になります。
     /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException">keyが0以下の場合、または配列の範囲を超える場合にスローされます。</exception>
     public void AddValue(int key, long value)
     {
-        for (int i = 0; i < _Matrix.Count; i++)
+        if (key <= 0 || key >= _Layers[0].Length * 2)
         {
-            var temp = Utilities.Common.Ceiling(key, 2);
+            throw new ArgumentOutOfRangeException(nameof(key), "Key is out of the valid range.");
+        }
+
+        for (int i = 0; i < _Layers.Count; i++)
+        {
+            var nextLevelKey = Utilities.Common.Ceiling(key, 2);
             if (key % 2 == 1)
             {
-                _Matrix[i][temp - 1] += value;
-
-                if (_Divisor != -1)
-                {
-                    _Matrix[i][temp - 1] += _Divisor;
-                    _Matrix[i][temp - 1] %= _Divisor;
-                }
+                _Layers[i][nextLevelKey - 1] += value;
+                _Layers[i][nextLevelKey - 1] = ApplyModulo(_Layers[i][nextLevelKey - 1]);
             }
 
-            key = temp;
+            key = nextLevelKey;
         }
     }
 
@@ -107,24 +137,25 @@ public class BinaryIndexedTree
     /// 除数が設定されている場合、和は除数で剰余をとった値になります。
     /// GetSum(0) は常に 0 を返します。
     /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException">keyが0未満の場合、または配列の範囲を超える場合にスローされます。</exception>
     public long GetSum(int key)
     {
+        if (key < 0 || key >= _Layers[0].Length * 2)
+        {
+            throw new ArgumentOutOfRangeException(nameof(key), "Key is out of the valid range.");
+        }
+
         if (key == 0)
             return 0L;
 
-        var value = 0L;
+        var sum = 0L;
 
-        for (int i = 0; i < _Matrix.Count; i++)
+        for (int i = 0; i < _Layers.Count; i++)
         {
             if (key % 2 == 1)
             {
-                value += _Matrix[i][Utilities.Common.Ceiling(key, 2) - 1];
-
-                if (_Divisor != -1)
-                {
-                    value += _Divisor;
-                    value %= _Divisor;
-                }
+                sum += _Layers[i][Utilities.Common.Ceiling(key, 2) - 1];
+                sum = ApplyModulo(sum);
             }
 
             if (key == 1)
@@ -133,7 +164,7 @@ public class BinaryIndexedTree
             key /= 2;
         }
 
-        return value;
+        return sum;
     }
 
     /// <summary>
@@ -145,16 +176,15 @@ public class BinaryIndexedTree
     /// このメソッドは、現在のキーまでの和から前のキーまでの和を減算することで、指定されたキーの値を計算します。
     /// 除数が設定されている場合、結果は除数で剰余をとった値になります。
     /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException">keyが0以下の場合、または配列の範囲を超える場合にスローされます。</exception>
     public long GetValue(int key)
     {
-        var value = GetSum(key) - GetSum(key - 1);
-
-        if (_Divisor != -1)
+        if (key <= 0 || key >= _Layers[0].Length * 2)
         {
-            value += _Divisor;
-            value %= _Divisor;
+            throw new ArgumentOutOfRangeException(nameof(key), "Key is out of the valid range.");
         }
 
-        return value;
+        var value = GetSum(key) - GetSum(key - 1);
+        return ApplyModulo(value);
     }
 }

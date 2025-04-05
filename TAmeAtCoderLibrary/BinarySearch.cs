@@ -1,378 +1,205 @@
 namespace TAmeAtCoderLibrary;
 
 /// <summary>
-/// バイナリサーチを行うための静的クラス。
+/// ソート済みリストに対するバイナリサーチ関連機能を提供します。
+/// リストは昇順にソートされている必要があります。
 /// </summary>
-public static class BinarySearch<T> where T : IComparable
+/// <typeparam name="T">比較可能な要素の型。</typeparam>
+public static class BinarySearchUtils<T> where T : IComparable<T>
 {
     /// <summary>
-    /// 値が合致する要素の中で一番小さいIndexを返す。
-    /// 合致する要素が存在しない場合は、値未満の要素の中で一番大きいIndexを返す。
+    /// 指定された値以上の最初の要素のインデックスを検索します (Lower Bound)。
     /// </summary>
-    /// <param name="array">検索対象のソート済み配列。</param>
+    /// <param name="list">検索対象のソート済みリスト。</param>
     /// <param name="value">検索する値。</param>
-    /// <returns>合致する要素の中で一番小さいIndex。存在しない場合は値未満の要素の中で一番大きいIndex。どちらも存在しない場合は-1。</returns>
-    public static int FindFirstOrOver(T[] array, T value)
+    /// <returns>
+    /// value 以上の値を持つ最初の要素のインデックス。
+    /// そのような要素が存在しない場合 (全ての要素が value 未満の場合) は list.Count を返します。
+    /// </returns>
+    /// <exception cref="ArgumentNullException">list が null の場合にスローされます。</exception>
+    public static int LowerBound(IReadOnlyList<T> list, T value)
     {
-        var idx = FindFirst(array, value);
-        return 0 <= idx ? idx : Over(array, value);
+        if (list == null) throw new ArgumentNullException(nameof(list));
+
+        int left = 0;
+        int count = list.Count;
+        while (left < count)
+        {
+            int middle = left + (count - left) / 2;
+            if (list[middle].CompareTo(value) < 0)
+            {
+                left = middle + 1;
+            }
+            else
+            {
+                count = middle;
+            }
+        }
+        return left;
     }
 
     /// <summary>
-    /// 値が合致する要素の中で一番小さいIndexを返す。
-    /// 合致する要素が存在しない場合は、値より大きい要素の中で一番小さいIndexを返す。
+    /// 指定された値より大きい最初の要素のインデックスを検索します (Upper Bound)。
     /// </summary>
-    /// <param name="array">検索対象のソート済み配列。</param>
+    /// <param name="list">検索対象のソート済みリスト。</param>
     /// <param name="value">検索する値。</param>
-    /// <returns>合致する要素の中で一番小さいIndex。存在しない場合は値より大きい要素の中で一番小さいIndex。どちらも存在しない場合は-1。</returns>
-    public static int FindFirstOrUnder(T[] array, T value)
+    /// <returns>
+    /// value より大きい値を持つ最初の要素のインデックス。
+    /// そのような要素が存在しない場合 (全ての要素が value 以下の場合) は list.Count を返します。
+    /// </returns>
+    /// <exception cref="ArgumentNullException">list が null の場合にスローされます。</exception>
+    public static int UpperBound(IReadOnlyList<T> list, T value)
     {
-        var idx = FindFirst(array, value);
-        return 0 <= idx ? idx : Under(array, value);
+        if (list == null) throw new ArgumentNullException(nameof(list));
+
+        int left = 0;
+        int count = list.Count;
+        while (left < count)
+        {
+            int middle = left + (count - left) / 2;
+            if (list[middle].CompareTo(value) <= 0)
+            {
+                left = middle + 1;
+            }
+            else
+            {
+                count = middle;
+            }
+        }
+        return left;
     }
 
     /// <summary>
-    /// 値が合致する要素の中で一番大きいIndexを返す。
-    /// 合致する要素が存在しない場合は、値より大きい要素の中で一番小さいIndexを返す。
+    /// 値が合致する最初の要素のインデックスを返します。
     /// </summary>
-    /// <param name="array">検索対象のソート済み配列。</param>
+    /// <param name="list">検索対象のソート済みリスト。</param>
     /// <param name="value">検索する値。</param>
-    /// <returns>合致する要素の中で一番大きいIndex。存在しない場合は値より大きい要素の中で一番小さいIndex。どちらも存在しない場合は-1。</returns>
-    public static int FindLastOrUnder(T[] array, T value)
+    /// <returns>合致する最初の要素のインデックス。存在しない場合は -1。</returns>
+    /// <exception cref="ArgumentNullException">list が null の場合にスローされます。</exception>
+    public static int FindFirst(IReadOnlyList<T> list, T value)
     {
-        var idx = FindLast(array, value);
-        return 0 <= idx ? idx : Under(array, value);
+        int lb = LowerBound(list, value);
+        if (lb < list.Count && list[lb].CompareTo(value) == 0)
+        {
+            return lb;
+        }
+        return -1;
     }
 
     /// <summary>
-    /// 値が合致する要素の中で一番大きいIndexを返す。
-    /// 合致する値が存在しない場合は、値未満の要素の中で一番大きいIndexを返す。
+    /// 値が合致する最後の要素のインデックスを返します。
     /// </summary>
-    /// <param name="array">検索対象のソート済み配列。</param>
+    /// <param name="list">検索対象のソート済みリスト。</param>
     /// <param name="value">検索する値。</param>
-    /// <returns>合致する要素の中で一番大きいIndex。存在しない場合は値未満の要素の中で一番大きいIndex。どちらも存在しない場合は-1。</returns>
-    public static int FindLastOrOver(T[] array, T value)
+    /// <returns>合致する最後の要素のインデックス。存在しない場合は -1。</returns>
+    /// <exception cref="ArgumentNullException">list が null の場合にスローされます。</exception>
+    public static int FindLast(IReadOnlyList<T> list, T value)
     {
-        var idx = FindLast(array, value);
-        return 0 <= idx ? idx : Over(array, value);
+        int ub = UpperBound(list, value);
+        if (ub > 0 && list[ub - 1].CompareTo(value) == 0)
+        {
+            return ub - 1;
+        }
+        return -1;
     }
 
     /// <summary>
-    /// 値が合致する要素の中で一番小さいIndexを返す。合致する要素が存在しない場合は-1を返す。
+    /// 値未満の最大の要素のインデックスを返します。
     /// </summary>
-    /// <param name="array">検索対象のソート済み配列。</param>
+    /// <param name="list">検索対象のソート済みリスト。</param>
     /// <param name="value">検索する値。</param>
-    /// <returns>合致する要素の中で一番小さいIndex。存在しない場合は-1。</returns>
-    public static int FindFirst(T[] array, T value)
+    /// <returns>値未満の最大の要素のインデックス。存在しない場合は -1。</returns>
+    /// <exception cref="ArgumentNullException">list が null の場合にスローされます。</exception>
+    public static int FindLargestLessThan(IReadOnlyList<T> list, T value)
     {
-        int left = 0, right = array.Length - 1;
-        return right < left ? -1 : FindFirst(array, value, left, right);
+        int lb = LowerBound(list, value);
+        return lb > 0 ? lb - 1 : -1;
     }
 
     /// <summary>
-    ///  FindFirst の内部実装用メソッド
+    /// 値より大きい最小の要素のインデックスを返します。
     /// </summary>
-    /// <param name="array"></param>
-    /// <param name="value"></param>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns></returns>
-    private static int FindFirst(T[] array, T value, int left, int right)
-    {
-        if (right < left) return -1;
-
-        var middle = (left + right) / 2;
-        var mValue = array[middle];
-
-        if (left == right)
-            return mValue.CompareTo(value) == 0 ? middle : -1;
-
-        if (mValue.CompareTo(value) == 1) return FindFirst(array, value, left, middle - 1);
-        else if (mValue.CompareTo(value) == -1) return FindFirst(array, value, middle + 1, right);
-        else return FindFirst(array, value, left, middle);
-    }
-
-    /// <summary>
-    /// 値が合致する要素の中で一番大きいIndexを返す。合致する要素が存在しない場合は-1を返す。
-    /// </summary>
-    /// <param name="array">検索対象のソート済み配列。</param>
+    /// <param name="list">検索対象のソート済みリスト。</param>
     /// <param name="value">検索する値。</param>
-    /// <returns>合致する要素の中で一番大きいIndex。存在しない場合は-1。</returns>
-    public static int FindLast(T[] array, T value)
+    /// <returns>値より大きい最小の要素のインデックス。存在しない場合は -1。</returns>
+    /// <exception cref="ArgumentNullException">list が null の場合にスローされます。</exception>
+    public static int FindSmallestGreaterThan(IReadOnlyList<T> list, T value)
     {
-        int left = 0, right = array.Length - 1;
-        return right < left ? -1 : FindLast(array, value, left, right);
+        int ub = UpperBound(list, value);
+        return ub < list.Count ? ub : -1;
     }
 
     /// <summary>
-    /// FindLast の内部実装用メソッド
+    /// 値が合致する最初の要素、または値未満の最大の要素のインデックスを返します。
     /// </summary>
-    /// <param name="array"></param>
-    /// <param name="value"></param>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns></returns>
-    private static int FindLast(T[] array, T value, int left, int right)
-    {
-        if (right < left) return -1;
-
-        var middle = (left + right) / 2 + ((left + right) % 2 == 1 ? 1 : 0);
-        var mValue = array[middle];
-
-        if (left == right)
-            return mValue.CompareTo(value) == 0 ? middle : -1;
-
-        if (mValue.CompareTo(value) == 1) return FindLast(array, value, left, middle - 1);
-        else if (mValue.CompareTo(value) == -1) return FindLast(array, value, middle + 1, right);
-        else return FindLast(array, value, middle, right);
-    }
-
-    /// <summary>
-    /// 値未満の要素の中で一番大きいIndexを返す。値未満の要素が存在しない場合は-1を返す。
-    /// </summary>
-    /// <param name="array">検索対象のソート済み配列。</param>
+    /// <param name="list">検索対象のソート済みリスト。</param>
     /// <param name="value">検索する値。</param>
-    /// <returns>値未満の要素の中で一番大きいIndex。存在しない場合は-1。</returns>
-    public static int Over(T[] array, T value)
+    /// <returns>条件に合致する要素のインデックス。存在しない場合は -1。</returns>
+    /// <exception cref="ArgumentNullException">list が null の場合にスローされます。</exception>
+    public static int FindFirstOrLargestLessThan(IReadOnlyList<T> list, T value)
     {
-        int left = 0, right = array.Length - 1;
-        return right < left ? -1 : Over(array, value, left, right);
+        int lb = LowerBound(list, value);
+        if (lb < list.Count && list[lb].CompareTo(value) == 0)
+        {
+            return lb;
+        }
+        return lb > 0 ? lb - 1 : -1;
     }
 
     /// <summary>
-    /// Over の内部実装用メソッド
+    /// 値が合致する最初の要素、または値より大きい最小の要素のインデックスを返します。
     /// </summary>
-    /// <param name="array"></param>
-    /// <param name="value"></param>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns></returns>
-    private static int Over(T[] array, T value, int left, int right)
-    {
-        var middle = (left + right) / 2 + ((left + right) % 2 == 1 ? 1 : 0);
-        var mValue = array[middle];
-
-        if (left == right)
-            return mValue.CompareTo(value) == -1 ? middle : -1;
-        else
-            return mValue.CompareTo(value) == -1 ? Over(array, value, middle, right) : Over(array, value, left, middle - 1);
-    }
-
-    /// <summary>
-    /// 値より大きいの要素の中で一番小さいIndexを返す。値以上の要素が存在しない場合は-1を返す。
-    /// </summary>
-    /// <param name="array">検索対象のソート済み配列。</param>
+    /// <param name="list">検索対象のソート済みリスト。</param>
     /// <param name="value">検索する値。</param>
-    /// <returns>値より大きい要素の中で一番小さいIndex。存在しない場合は-1。</returns>
-    public static int Under(T[] array, T value)
+    /// <returns>条件に合致する要素のインデックス。存在しない場合は -1。</returns>
+    /// <exception cref="ArgumentNullException">list が null の場合にスローされます。</exception>
+    public static int FindFirstOrSmallestGreaterThan(IReadOnlyList<T> list, T value)
     {
-        int left = 0, right = array.Length - 1;
-        return right < left ? -1 : Under(array, value, left, right);
-
+        int lb = LowerBound(list, value);
+        if (lb < list.Count && list[lb].CompareTo(value) == 0)
+        {
+            return lb;
+        }
+        // FindSmallestGreaterThan (UpperBound の結果) を返す
+        int ub = UpperBound(list, value);
+        return ub < list.Count ? ub : -1;
     }
 
     /// <summary>
-    /// Under の内部実装用メソッド
+    /// 値が合致する最後の要素、または値より大きい最小の要素のインデックスを返します。
     /// </summary>
-    /// <param name="array"></param>
-    /// <param name="value"></param>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns></returns>
-    private static int Under(T[] array, T value, int left, int right)
-    {
-        var middle = (left + right) / 2;
-        var mValue = array[middle];
-
-        if (left == right)
-            return mValue.CompareTo(value) == 1 ? middle : -1;
-        else
-            return mValue.CompareTo(value) == 1 ? Under(array, value, left, middle) : Under(array, value, middle + 1, right);
-    }
-
-    /// <summary>
-    /// 値が合致する要素の中で一番小さいIndexを返す。
-    /// 合致する要素が存在しない場合は、値未満の要素の中で一番大きいIndexを返す。
-    /// </summary>
-    /// <param name="array">検索対象のソート済みリスト。</param>
+    /// <param name="list">検索対象のソート済みリスト。</param>
     /// <param name="value">検索する値。</param>
-    /// <returns>合致する要素の中で一番小さいIndex。存在しない場合は値未満の要素の中で一番大きいIndex。どちらも存在しない場合は-1。</returns>
-    public static int FindFirstOrOver(List<T> array, T value)
+    /// <returns>条件に合致する要素のインデックス。存在しない場合は -1。</returns>
+    /// <exception cref="ArgumentNullException">list が null の場合にスローされます。</exception>
+    public static int FindLastOrSmallestGreaterThan(IReadOnlyList<T> list, T value)
     {
-        var idx = FindFirst(array, value);
-        return 0 <= idx ? idx : Over(array, value);
+        int lastIndex = FindLast(list, value); // FindLast は null チェックを含む
+        if (lastIndex != -1)
+        {
+            return lastIndex;
+        }
+        // FindSmallestGreaterThan (UpperBound の結果) を返す
+        int ub = UpperBound(list, value); // UpperBound は null チェックを含む
+        return ub < list.Count ? ub : -1;
     }
 
     /// <summary>
-    /// 値が合致する要素の中で一番小さいIndexを返す。
-    /// 合致する要素が存在しない場合は、値より大きい要素の中で一番小さいIndexを返す。
+    /// 値が合致する最後の要素、または値未満の最大の要素のインデックスを返します。
     /// </summary>
-    /// <param name="array">検索対象のソート済みリスト。</param>
+    /// <param name="list">検索対象のソート済みリスト。</param>
     /// <param name="value">検索する値。</param>
-    /// <returns>合致する要素の中で一番小さいIndex。存在しない場合は値より大きい要素の中で一番小さいIndex。どちらも存在しない場合は-1。</returns>
-    public static int FindFirstOrUnder(List<T> array, T value)
+    /// <returns>条件に合致する要素のインデックス。存在しない場合は -1。</returns>
+    /// <exception cref="ArgumentNullException">list が null の場合にスローされます。</exception>
+    public static int FindLastOrLargestLessThan(IReadOnlyList<T> list, T value)
     {
-        var idx = FindFirst(array, value);
-        return 0 <= idx ? idx : Under(array, value);
-    }
-
-    /// <summary>
-    /// 値が合致する要素の中で一番大きいIndexを返す。
-    /// 合致する要素が存在しない場合は、値より大きい要素の中で一番小さいIndexを返す。
-    /// </summary>
-    /// <param name="array">検索対象のソート済みリスト。</param>
-    /// <param name="value">検索する値。</param>
-    /// <returns>合致する要素の中で一番大きいIndex。存在しない場合は値より大きい要素の中で一番小さいIndex。どちらも存在しない場合は-1。</returns>
-    public static int FindLastOrUnder(List<T> array, T value)
-    {
-        var idx = FindLast(array, value);
-        return 0 <= idx ? idx : Under(array, value);
-    }
-
-    /// <summary>
-    /// 値が合致する要素の中で一番大きいIndexを返す。
-    /// 合致する値が存在しない場合は、値未満の要素の中で一番大きいIndexを返す。
-    /// </summary>
-    /// <param name="array">検索対象のソート済みリスト。</param>
-    /// <param name="value">検索する値。</param>
-    /// <returns>合致する要素の中で一番大きいIndex。存在しない場合は値未満の要素の中で一番大きいIndex。どちらも存在しない場合は-1。</returns>
-    public static int FindLastOrOver(List<T> array, T value)
-    {
-        var idx = FindLast(array, value);
-        return 0 <= idx ? idx : Over(array, value);
-    }
-
-    /// <summary>
-    /// 値が合致する要素の中で一番小さいIndexを返す。合致する要素が存在しない場合は-1を返す。
-    /// </summary>
-    /// <param name="array">検索対象のソート済みリスト。</param>
-    /// <param name="value">検索する値。</param>
-    /// <returns>合致する要素の中で一番小さいIndex。存在しない場合は-1。</returns>
-    public static int FindFirst(List<T> array, T value)
-    {
-        int left = 0, right = array.Count - 1;
-        return right < left ? -1 : FindFirst(array, value, left, right);
-    }
-
-    /// <summary>
-    /// FindFirst の内部実装用メソッド
-    /// </summary>
-    /// <param name="array"></param>
-    /// <param name="value"></param>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns></returns>
-    private static int FindFirst(List<T> array, T value, int left, int right)
-    {
-        if (right < left) return -1;
-
-        var middle = (left + right) / 2;
-        var mValue = array[middle];
-
-        if (left == right)
-            return mValue.CompareTo(value) == 0 ? middle : -1;
-
-        if (mValue.CompareTo(value) == 1) return FindFirst(array, value, left, middle - 1);
-        else if (mValue.CompareTo(value) == -1) return FindFirst(array, value, middle + 1, right);
-        else return FindFirst(array, value, left, middle);
-    }
-
-    /// <summary>
-    /// 値が合致する要素の中で一番大きいIndexを返す。合致する要素が存在しない場合は-1を返す。
-    /// </summary>
-    /// <param name="array">検索対象のソート済みリスト。</param>
-    /// <param name="value">検索する値。</param>
-    /// <returns>合致する要素の中で一番大きいIndex。存在しない場合は-1。</returns>
-    public static int FindLast(List<T> array, T value)
-    {
-        int left = 0, right = array.Count - 1;
-        return right < left ? -1 : FindLast(array, value, left, right);
-    }
-
-    /// <summary>
-    /// FindLast の内部実装用メソッド
-    /// </summary>
-    /// <param name="array"></param>
-    /// <param name="value"></param>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns></returns>
-    private static int FindLast(List<T> array, T value, int left, int right)
-    {
-        if (right < left) return -1;
-
-        var middle = (left + right) / 2 + ((left + right) % 2 == 1 ? 1 : 0);
-        var mValue = array[middle];
-
-        if (left == right)
-            return mValue.CompareTo(value) == 0 ? middle : -1;
-
-        if (mValue.CompareTo(value) == 1) return FindLast(array, value, left, middle - 1);
-        else if (mValue.CompareTo(value) == -1) return FindLast(array, value, middle + 1, right);
-        else return FindLast(array, value, middle, right);
-    }
-
-    /// <summary>
-    /// 値未満の要素の中で一番大きいIndexを返す。値未満の要素が存在しない場合は-1を返す。
-    /// </summary>
-    /// <param name="array">検索対象のソート済みリスト。</param>
-    /// <param name="value">検索する値。</param>
-    /// <returns>値未満の要素の中で一番大きいIndex。存在しない場合は-1。</returns>
-    public static int Over(List<T> array, T value)
-    {
-        int left = 0, right = array.Count - 1;
-        return right < left ? -1 : Over(array, value, left, right);
-    }
-
-    /// <summary>
-    /// Over の内部実装用メソッド
-    /// </summary>
-    /// <param name="array"></param>
-    /// <param name="value"></param>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns></returns>
-    private static int Over(List<T> array, T value, int left, int right)
-    {
-        var middle = (left + right) / 2 + ((left + right) % 2 == 1 ? 1 : 0);
-        var mValue = array[middle];
-
-        if (left == right)
-            return mValue.CompareTo(value) == -1 ? middle : -1;
-        else
-            return mValue.CompareTo(value) == -1 ? Over(array, value, middle, right) : Over(array, value, left, middle - 1);
-    }
-
-    /// <summary>
-    /// ソート済みリスト内で、指定された値より大きい要素のうち、最も小さいインデックスを返します。
-    /// 指定された値より大きい要素が存在しない場合は -1 を返します。
-    /// </summary>
-    /// <param name="array">検索対象のソート済みリスト。</param>
-    /// <param name="value">検索する値。</param>
-    /// <returns>指定された値より大きい要素の中で一番小さいインデックス。そのような要素が存在しない場合は -1。</returns>
-    public static int Under(List<T> array, T value)
-    {
-        int left = 0, right = array.Count - 1;
-        return right < left ? -1 : Under(array, value, left, right);
-
-    }
-
-    /// <summary>
-    /// Under メソッドの内部実装用。
-    /// </summary>
-    /// <param name="array">検索対象のソート済みリスト。</param>
-    /// <param name="value">検索する値。</param>
-    /// <param name="left">検索範囲の左端インデックス。</param>
-    /// <param name="right">検索範囲の右端インデックス。</param>
-    /// <returns>指定された値より大きい要素の中で一番小さいインデックス。そのような要素が存在しない場合は -1。</returns>
-    private static int Under(List<T> array, T value, int left, int right)
-    {
-        var middle = (left + right) / 2;
-        var mValue = array[middle];
-
-        if (left == right)
-            return mValue.CompareTo(value) == 1 ? middle : -1;
-        else
-            return mValue.CompareTo(value) == 1 ? Under(array, value, left, middle) : Under(array, value, middle + 1, right);
+        int lastIndex = FindLast(list, value); // FindLast は null チェックを含む
+        if (lastIndex != -1)
+        {
+            return lastIndex;
+        }
+        // FindLargestLessThan (LowerBound - 1 の結果) を返す
+        int lb = LowerBound(list, value); // LowerBound は null チェックを含む
+        return lb > 0 ? lb - 1 : -1;
     }
 }

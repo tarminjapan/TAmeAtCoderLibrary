@@ -20,15 +20,15 @@ public static partial class MathEx
         /// </returns>
         public static int CounterClockWise((int X, int Y) A, (int X, int Y) B, (int X, int Y) C)
         {
-            // Calculate the determinant of the matrix
+            // 行列式を計算する
             double area2 = (B.X - A.X) * (C.Y - A.Y) - (B.Y - A.Y) * (C.X - A.X);
 
             if (area2 > 0)
-                return 1; // counter-clockwise
+                return 1; // 反時計回り
             else if (area2 < 0)
-                return -1; // clockwise
+                return -1; // 時計回り
             else
-                return 0; // collinear
+                return 0; // 一直線上
         }
 
         /// <summary>

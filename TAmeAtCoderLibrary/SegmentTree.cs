@@ -2,203 +2,175 @@ namespace TAmeAtCoderLibrary;
 
 /// <summary>
 /// セグメント木：指定された範囲に対するクエリ（合計、最大、最小）を効率的に実行できるデータ構造を提供します。
-/// 任意の区間に対する演算結果をO(log N)で取得することができます。
-/// 要素の更新もO(log N)で行うことができます。
+/// 任意の区間に対する演算結果をO(log N)で取得でき、要素の更新もO(log N)で行えます。
 /// </summary>
-/// <remarks>
-/// セグメント木は、配列などの連続したデータ構造に対する区間クエリを効率的に処理するためのデータ構造です。
-/// 主に区間の合計、最大値、最小値などを高速に計算するために使用されます。
-/// </remarks>
 public class SegmentTree
 {
-    private readonly int _MinIndex = -1;
-    private readonly int _NumberOfNodes = -1;
-    /// <summary>
-    /// セグメント木の最小インデックスを取得します。
-    /// 通常は0から始まります。
-    /// </summary>
-    /// <value>セグメント木の最小インデックス</value>
-    public int MinIndex => _MinIndex;
-    /// <summary>
-    /// セグメント木のノード数を取得します。
-    /// これは、このセグメント木で管理できる要素の総数を表します。
-    /// </summary>
-    /// <value>セグメント木のノード数</value>
-    public int NumberOfSegments => _NumberOfNodes;
-
-    private readonly Node _RootNode;
+    private readonly int _size;
+    private readonly Node _rootNode;
+    private const int DefaultMinIndex = 0; // 通常は0固定
 
     /// <summary>
-    /// セグメント木を初期化します。
+    /// セグメント木が管理する要素の数を取得します。
     /// </summary>
-    /// <param name="numberOfNodes">セグメント木のノード数。管理したい要素の総数を指定します。</param>
-    /// <remarks>
-    /// 初期化時にはすべての値が0に設定されます。
-    /// 値を設定するには、<see cref="Add"/>または<see cref="SetValue"/>メソッドを使用してください。
-    /// </remarks>
-    public SegmentTree(int numberOfNodes)
+    public int Size => _size;
+
+    /// <summary>
+    /// セグメント木のインデックスの開始値を取得します（通常は0）。
+    /// </summary>
+    public int MinIndex => DefaultMinIndex;
+
+    /// <summary>
+    /// セグメント木を指定された要素数で初期化します。
+    /// </summary>
+    /// <param name="size">セグメント木で管理する要素の総数。1以上の値を指定してください。</param>
+    /// <exception cref="ArgumentOutOfRangeException">sizeが0以下の場合にスローされます。</exception>
+    public SegmentTree(int size)
     {
-        _MinIndex = 0;
-        _NumberOfNodes = numberOfNodes;
-        _RootNode = new Node(0, numberOfNodes);
+        if (size <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(size), "Size must be positive.");
+        }
+        _size = size;
+        _rootNode = new Node(DefaultMinIndex, size);
     }
 
     /// <summary>
-    /// 指定されたインデックスに値を追加します。
-    /// 既存の値に加算されます。
+    /// 指定されたインデックスに値を追加します（既存の値に加算）。
     /// </summary>
-    /// <param name="index">値を追加するインデックス。0から始まる整数で、<see cref="NumberOfSegments"/>未満である必要があります。</param>
-    /// <param name="value">追加する値。任意の整数値を指定できます。</param>
-    /// <remarks>
-    /// このメソッドは既存の値に指定された値を加算します。
-    /// 値を直接設定する場合は<see cref="SetValue"/>メソッドを使用してください。
-    /// </remarks>
+    /// <param name="index">値を追加するインデックス（0から始まる）。</param>
+    /// <param name="value">追加する値。</param>
+    /// <exception cref="ArgumentOutOfRangeException">indexが範囲外の場合にスローされます。</exception>
+    /// <remarks>この実装では、Addは Sum, Max, Min を更新します。Max/Minの更新は加算後の値がそのまま反映されます。</remarks>
     public void Add(int index, long value)
     {
-        _RootNode.Add(index, value);
+        if (index < 0 || index >= _size)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index), $"Index must be between 0 and {_size - 1}.");
+        }
+        _rootNode.Add(index, value);
     }
 
     /// <summary>
-    /// 指定されたインデックスの値を設定します。
-    /// 既存の値は上書きされます。
+    /// 指定されたインデックスの値を新しい値で設定（上書き）します。
     /// </summary>
-    /// <param name="index">値を設定するインデックス。0から始まる整数で、<see cref="NumberOfSegments"/>未満である必要があります。</param>
-    /// <param name="value">設定する値。任意の整数値を指定できます。</param>
-    /// <remarks>
-    /// このメソッドは既存の値を上書きします。
-    /// 値を加算する場合は<see cref="Add"/>メソッドを使用してください。
-    /// </remarks>
+    /// <param name="index">値を設定するインデックス（0から始まる）。</param>
+    /// <param name="value">設定する新しい値。</param>
+    /// <exception cref="ArgumentOutOfRangeException">indexが範囲外の場合にスローされます。</exception>
     public void SetValue(int index, long value)
     {
-        _RootNode.SetValue(index, value);
+        if (index < 0 || index >= _size)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index), $"Index must be between 0 and {_size - 1}.");
+        }
+        _rootNode.SetValue(index, value);
     }
 
     /// <summary>
-    /// 指定された範囲の合計を取得します。
+    /// 指定された範囲 [left, right] (両端含む) の合計値を取得します。
     /// </summary>
     /// <param name="left">範囲の左端インデックス（含む）。</param>
     /// <param name="right">範囲の右端インデックス（含む）。</param>
     /// <returns>指定された範囲の合計値。</returns>
-    /// <remarks>
-    /// このメソッドは、left から right までの範囲（両端を含む）の要素の合計を計算します。
-    /// 計算量はO(log N)です。
-    /// </remarks>
-    public long GetSum(int left, int right) => _RootNode.GetSum(left, right - left + 1);
+    /// <exception cref="ArgumentOutOfRangeException">leftまたはrightが範囲外の場合にスローされます。</exception>
+    /// <exception cref="ArgumentException">leftがrightより大きい場合にスローされます。</exception>
+    public long GetSum(int left, int right)
+    {
+        ValidateRange(left, right);
+        // 要素数を渡す (right - left + 1)
+        return _rootNode.GetSum(left, right - left + 1);
+    }
 
     /// <summary>
-    /// 指定された範囲の最大値を取得します。
+    /// 指定された範囲 [left, right] (両端含む) の最大値を取得します。
     /// </summary>
     /// <param name="left">範囲の左端インデックス（含む）。</param>
     /// <param name="right">範囲の右端インデックス（含む）。</param>
     /// <returns>指定された範囲の最大値。範囲内に要素がない場合はlong.MinValueを返します。</returns>
-    /// <remarks>
-    /// このメソッドは、left から right までの範囲（両端を含む）の要素の最大値を計算します。
-    /// 計算量はO(log N)です。
-    /// </remarks>
-    public long GetMax(int left, int right) => _RootNode.GetMax(left, right - left + 1);
+    /// <exception cref="ArgumentOutOfRangeException">leftまたはrightが範囲外の場合にスローされます。</exception>
+    /// <exception cref="ArgumentException">leftがrightより大きい場合にスローされます。</exception>
+    public long GetMax(int left, int right)
+    {
+        ValidateRange(left, right);
+        return _rootNode.GetMax(left, right - left + 1);
+    }
 
     /// <summary>
-    /// 指定された範囲の最小値を取得します。
+    /// 指定された範囲 [left, right] (両端含む) の最小値を取得します。
     /// </summary>
     /// <param name="left">範囲の左端インデックス（含む）。</param>
     /// <param name="right">範囲の右端インデックス（含む）。</param>
     /// <returns>指定された範囲の最小値。範囲内に要素がない場合はlong.MaxValueを返します。</returns>
-    /// <remarks>
-    /// このメソッドは、left から right までの範囲（両端を含む）の要素の最小値を計算します。
-    /// 計算量はO(log N)です。
-    /// </remarks>
-    public long GetMin(int left, int right) => _RootNode.GetMin(left, right - left + 1);
+    /// <exception cref="ArgumentOutOfRangeException">leftまたはrightが範囲外の場合にスローされます。</exception>
+    /// <exception cref="ArgumentException">leftがrightより大きい場合にスローされます。</exception>
+    public long GetMin(int left, int right)
+    {
+        ValidateRange(left, right);
+        return _rootNode.GetMin(left, right - left + 1);
+    }
 
     /// <summary>
-    /// セグメント木のノードを表すクラスです。
-    /// 各ノードは範囲の合計、最大値、最小値を管理します。
+    /// 範囲クエリの引数 (left, right) が有効か検証します。
     /// </summary>
-    /// <remarks>
-    /// セグメント木の各ノードは、特定の範囲の要素に関する情報（合計、最大値、最小値）を保持します。
-    /// 木構造を形成することで、効率的な範囲クエリの処理を可能にします。
-    /// </remarks>
+    private void ValidateRange(int left, int right)
+    {
+        if (left < 0 || left >= _size || right < 0 || right >= _size)
+        {
+            throw new ArgumentOutOfRangeException($"Arguments left ({left}) or right ({right}) must be within the range [0, {_size - 1}].");
+        }
+        if (left > right)
+        {
+            throw new ArgumentException($"Left index ({left}) cannot be greater than right index ({right}).", nameof(left));
+        }
+    }
+
+    // --- Private Node Class ---
+
+    /// <summary>
+    /// セグメント木のノード。範囲の集計値（合計、最大、最小）を保持し、再帰的な操作を行う。
+    /// </summary>
     private class Node
     {
-        /// <summary>
-        /// このノードが担当する範囲の最小インデックスです。
-        /// </summary>
-        protected readonly int MinIndex = 0;
+        internal readonly int StartIndex; // このノードが担当する範囲の開始インデックス
+        internal readonly int Count;      // このノードが担当する要素数
+        internal long Sum;
+        internal long Max;
+        internal long Min;
+        internal readonly Node ChildLeft;
+        internal readonly Node ChildRight;
 
         /// <summary>
-        /// このノードが担当する範囲のノード数です。
+        /// ノードを初期化し、必要であれば子ノードを再帰的に生成する。
         /// </summary>
-        protected readonly int NumberOfNodes = 0;
-
-        /// <summary>
-        /// このノードが担当する範囲の要素の合計値です。
-        /// </summary>
-        protected long Sum = 0L;
-
-        /// <summary>
-        /// このノードが担当する範囲の要素の最大値です。
-        /// </summary>
-        protected long Max = 0L;
-
-        /// <summary>
-        /// このノードが担当する範囲の要素の最小値です。
-        /// </summary>
-        protected long Min = 0L;
-
-        /// <summary>
-        /// 左の子ノードへの参照です。葉ノードの場合はnullです。
-        /// </summary>
-        private readonly Node ChildLeft;
-
-        /// <summary>
-        /// 右の子ノードへの参照です。葉ノードの場合はnullです。
-        /// </summary>
-        private readonly Node ChildRight;
-
-        /// <summary>
-        /// ノードを初期化します。
-        /// </summary>
-        /// <param name="minIndex">ノードがカバーする範囲の最小インデックス。</param>
-        /// <param name="numberOfNodes">ノードがカバーするノード数。</param>
-        /// <remarks>
-        /// 初期化時には、ノードは範囲に応じて再帰的に子ノードを作成します。
-        /// ノード数が1の場合は葉ノードとなり、それ以上の分割は行いません。
-        /// </remarks>
-        public Node(int minIndex, int numberOfNodes)
+        internal Node(int startIndex, int count)
         {
-            MinIndex = minIndex;
-            NumberOfNodes = numberOfNodes;
+            StartIndex = startIndex;
+            Count = count;
 
-            if (numberOfNodes == 1) return;
+            // 初期値の設定 (葉ノード以外は子から集約される)
+            Sum = 0L;          // 合計の単位元
+            Max = long.MinValue; // 最大値の単位元
+            Min = long.MaxValue; // 最小値の単位元
 
-            var tNumofNodes = numberOfNodes / 2;
-            ChildLeft = new Node(minIndex, tNumofNodes);
-            ChildRight = new Node(minIndex + tNumofNodes, numberOfNodes - tNumofNodes);
+            if (count > 1)
+            {
+                int leftCount = count / 2;
+                int rightCount = count - leftCount;
+                ChildLeft = new Node(startIndex, leftCount);
+                ChildRight = new Node(startIndex + leftCount, rightCount);
+                // Note: 初期状態では子ノードの値も単位元なので、UpdateAggregatesは不要
+            }
+            // count == 1 の場合は葉ノード。ChildLeft/Rightはnullのまま。
         }
 
         /// <summary>
-        /// 指定されたインデックスに値を追加します。
+        /// 子ノードの値に基づいて、このノードの集計値 (Sum, Max, Min) を更新する。
         /// </summary>
-        /// <param name="index">値を追加するインデックス。</param>
-        /// <param name="value">追加する値。</param>
-        /// <remarks>
-        /// 葉ノードの場合は直接値を更新し、内部ノードの場合は適切な子ノードに処理を委譲した後、
-        /// 子ノードの値に基づいて自身の合計、最大値、最小値を更新します。
-        /// </remarks>
-        public void Add(int index, long value)
+        private void UpdateAggregates()
         {
-            if (NumberOfNodes == 1)
+            // 葉ノードの場合は子がないので更新不要
+            if (Count > 1)
             {
-                Sum += value;
-                Max = value;
-                Min = value;
-            }
-            else
-            {
-                if (index < ChildRight.MinIndex)
-                    ChildLeft.Add(index, value);
-                else
-                    ChildRight.Add(index, value);
-
                 Sum = ChildLeft.Sum + ChildRight.Sum;
                 Max = Math.Max(ChildLeft.Max, ChildRight.Max);
                 Min = Math.Min(ChildLeft.Min, ChildRight.Min);
@@ -206,130 +178,132 @@ public class SegmentTree
         }
 
         /// <summary>
-        /// 指定されたインデックスの値を設定します。
+        /// 指定インデックスに値を追加し、関連ノードを更新する。
         /// </summary>
-        /// <param name="index">値を設定するインデックス。</param>
-        /// <param name="value">設定する値。</param>
-        /// <remarks>
-        /// 葉ノードの場合は直接値を設定し、内部ノードの場合は適切な子ノードに処理を委譲した後、
-        /// 子ノードの値に基づいて自身の合計、最大値、最小値を更新します。
-        /// </remarks>
-        public void SetValue(int index, long value)
+        internal void Add(int index, long value)
         {
-            if (NumberOfNodes == 1)
+            if (Count == 1) // 葉ノード
+            {
+                // Add の挙動: Sum に加算し、Max/Min はその結果とする
+                Sum += value;
+                Max = Sum;
+                Min = Sum;
+            }
+            else // 内部ノード
+            {
+                // 適切な子ノードに処理を委譲
+                if (index < ChildRight.StartIndex)
+                    ChildLeft.Add(index, value);
+                else
+                    ChildRight.Add(index, value);
+
+                // 子ノードの変更を反映
+                UpdateAggregates();
+            }
+        }
+
+        /// <summary>
+        /// 指定インデックスの値を設定し、関連ノードを更新する。
+        /// </summary>
+        internal void SetValue(int index, long value)
+        {
+            if (Count == 1) // 葉ノード
             {
                 Sum = value;
                 Max = value;
                 Min = value;
             }
-            else
+            else // 内部ノード
             {
-                if (index < ChildRight.MinIndex)
-                    ChildLeft.Add(index, value);
+                // 適切な子ノードに処理を委譲
+                if (index < ChildRight.StartIndex)
+                    ChildLeft.SetValue(index, value);
                 else
-                    ChildRight.Add(index, value);
+                    ChildRight.SetValue(index, value);
 
-                Sum = ChildLeft.Sum + ChildRight.Sum;
-                Max = Math.Max(ChildLeft.Max, ChildRight.Max);
-                Min = Math.Min(ChildLeft.Min, ChildRight.Min);
+                // 子ノードの変更を反映
+                UpdateAggregates();
             }
         }
 
         /// <summary>
-        /// 指定された範囲の合計を取得します。
+        /// 指定範囲 [queryStart, queryStart + queryCount) の合計値を取得する。
         /// </summary>
-        /// <param name="left">範囲の左端インデックス。</param>
-        /// <param name="numofNodes">範囲のノード数。</param>
-        /// <returns>指定された範囲の合計。</returns>
-        /// <remarks>
-        /// このノードが完全に指定された範囲をカバーしている場合は、保存されている合計値を返します。
-        /// そうでない場合は、範囲を分割して子ノードに委譲し、結果を合算します。
-        /// </remarks>
-        public long GetSum(int left, int numofNodes)
+        internal long GetSum(int queryStart, int queryCount)
         {
-            if (MinIndex == left && NumberOfNodes == numofNodes) return Sum;
+            int nodeEnd = StartIndex + Count;
+            int queryEnd = queryStart + queryCount;
 
-            var sum = 0L;
-
-            if (left < ChildRight.MinIndex)
+            // 1. クエリ範囲がノード範囲と全く交差しない場合
+            if (queryEnd <= StartIndex || nodeEnd <= queryStart)
             {
-                var tNumofNodes = Math.Min(numofNodes, ChildRight.MinIndex - left);
-                sum += ChildLeft.GetSum(left, tNumofNodes);
+                return 0L; // 合計の単位元
             }
 
-            if (ChildRight.MinIndex <= left + numofNodes - 1)
+            // 2. クエリ範囲がノード範囲を完全に含む場合
+            if (queryStart <= StartIndex && nodeEnd <= queryEnd)
             {
-                var tLeft = Math.Max(ChildRight.MinIndex, left);
-                var tNumofNodes = left + numofNodes - tLeft;
-                sum += ChildRight.GetSum(tLeft, tNumofNodes);
+                return Sum;
             }
 
-            return sum;
+            // 3. それ以外（クエリ範囲がノード範囲の一部と交差する場合）
+            // 子ノードに問い合わせる
+            long leftSum = ChildLeft.GetSum(queryStart, queryCount);
+            long rightSum = ChildRight.GetSum(queryStart, queryCount);
+            return leftSum + rightSum;
+        }
+
+
+        /// <summary>
+        /// 指定範囲 [queryStart, queryStart + queryCount) の最大値を取得する。
+        /// </summary>
+        internal long GetMax(int queryStart, int queryCount)
+        {
+            int nodeEnd = StartIndex + Count;
+            int queryEnd = queryStart + queryCount;
+
+            // 1. クエリ範囲がノード範囲と全く交差しない場合
+            if (queryEnd <= StartIndex || nodeEnd <= queryStart)
+            {
+                return long.MinValue; // 最大値の単位元
+            }
+
+            // 2. クエリ範囲がノード範囲を完全に含む場合
+            if (queryStart <= StartIndex && nodeEnd <= queryEnd)
+            {
+                return Max;
+            }
+
+            // 3. それ以外
+            long leftMax = ChildLeft.GetMax(queryStart, queryCount);
+            long rightMax = ChildRight.GetMax(queryStart, queryCount);
+            return Math.Max(leftMax, rightMax);
         }
 
         /// <summary>
-        /// 指定された範囲の最大値を取得します。
+        /// 指定範囲 [queryStart, queryStart + queryCount) の最小値を取得する。
         /// </summary>
-        /// <param name="left">範囲の左端インデックス。</param>
-        /// <param name="numofNodes">範囲のノード数。</param>
-        /// <returns>指定された範囲の最大値。範囲が存在しない場合はlong.MinValueを返します。</returns>
-        /// <remarks>
-        /// このノードが完全に指定された範囲をカバーしている場合は、保存されている最大値を返します。
-        /// そうでない場合は、範囲を分割して子ノードに委譲し、結果の最大値を返します。
-        /// </remarks>
-        public long GetMax(int left, int numofNodes)
+        internal long GetMin(int queryStart, int queryCount)
         {
-            if (MinIndex == left && NumberOfNodes == numofNodes) return Max;
+            int nodeEnd = StartIndex + Count;
+            int queryEnd = queryStart + queryCount;
 
-            var max = long.MinValue;
-
-            if (left < ChildRight.MinIndex)
+            // 1. クエリ範囲がノード範囲と全く交差しない場合
+            if (queryEnd <= StartIndex || nodeEnd <= queryStart)
             {
-                var tNumofNodes = Math.Min(numofNodes, ChildRight.MinIndex - left);
-                max = Math.Max(max, ChildLeft.GetMax(left, tNumofNodes));
+                return long.MaxValue; // 最小値の単位元
             }
 
-            if (ChildRight.MinIndex <= left + numofNodes - 1)
+            // 2. クエリ範囲がノード範囲を完全に含む場合
+            if (queryStart <= StartIndex && nodeEnd <= queryEnd)
             {
-                var tLeft = Math.Max(ChildRight.MinIndex, left);
-                var tNumofNodes = left + numofNodes - tLeft;
-                max = Math.Max(max, ChildRight.GetMax(tLeft, tNumofNodes));
+                return Min;
             }
 
-            return max;
-        }
-
-        /// <summary>
-        /// 指定された範囲の最小値を取得します。
-        /// </summary>
-        /// <param name="left">範囲の左端インデックス。</param>
-        /// <param name="numofNodes">範囲のノード数。</param>
-        /// <returns>指定された範囲の最小値。範囲が存在しない場合はlong.MaxValueを返します。</returns>
-        /// <remarks>
-        /// このノードが完全に指定された範囲をカバーしている場合は、保存されている最小値を返します。
-        /// そうでない場合は、範囲を分割して子ノードに委譲し、結果の最小値を返します。
-        /// </remarks>
-        public long GetMin(int left, int numofNodes)
-        {
-            if (MinIndex == left && NumberOfNodes == numofNodes) return Min;
-
-            var min = long.MinValue;
-
-            if (left < ChildRight.MinIndex)
-            {
-                var tNumofNodes = Math.Min(numofNodes, ChildRight.MinIndex - left);
-                min = Math.Min(min, ChildLeft.GetMin(left, tNumofNodes));
-            }
-
-            if (ChildRight.MinIndex <= left + numofNodes - 1)
-            {
-                var tLeft = Math.Min(ChildRight.MinIndex, left);
-                var tNumofNodes = left + numofNodes - tLeft;
-                min = Math.Min(min, ChildRight.GetMin(tLeft, tNumofNodes));
-            }
-
-            return min;
+            // 3. それ以外
+            long leftMin = ChildLeft.GetMin(queryStart, queryCount);
+            long rightMin = ChildRight.GetMin(queryStart, queryCount);
+            return Math.Min(leftMin, rightMin);
         }
     }
 }
-
