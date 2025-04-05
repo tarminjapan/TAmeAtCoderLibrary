@@ -75,7 +75,7 @@ public static partial class MathEx
             if (number % 2 == 0) return false;
 
             // √number まで奇数で割ってみる
-            long sqrt = Basic.Sqrt(number);
+            long sqrt = Sqrt(number);
             for (long i = 3; i <= sqrt; i += 2)
             {
                 if (number % i == 0)
@@ -109,7 +109,7 @@ public static partial class MathEx
             }
 
             long tempNumber = number;
-            long sqrt = Basic.Sqrt(tempNumber);
+            long sqrt = Sqrt(tempNumber);
 
             // 2から√numberまで割っていく
             for (long i = 2; i <= sqrt; i++)
@@ -140,7 +140,7 @@ public static partial class MathEx
         }
 
         /// <summary>
-        /// 指定された正の整数を素因数分解します (試し割り法、TryGetValue版)。
+        /// 指定された正の整数を素因数分解します (試し割り法、GetValueOrDefault版)。
         /// </summary>
         /// <param name="number">素因数分解する正の整数。</param>
         /// <returns>素因数をキー、その指数を値とする辞書。numberが1以下の場合は空の辞書。</returns>
@@ -163,32 +163,29 @@ public static partial class MathEx
             // 2で割り切れるだけ割る
             while (tempNumber % 2 == 0)
             {
-                factors.TryGetValue(2, out int count); // 現在のカウントを取得、なければ0
-                factors[2] = count + 1;                 // カウントを+1して更新
+                factors[2] = factors.GetValueOrDefault(2, 0) + 1;
                 tempNumber /= 2;
             }
 
             // 3以上の奇数で割っていく (√number まで)
-            long sqrt = Basic.Sqrt(tempNumber);
+            long sqrt = Sqrt(tempNumber);
             for (long i = 3; i <= sqrt; i += 2)
             {
                 while (tempNumber % i == 0)
                 {
-                    factors.TryGetValue(i, out int count);
-                    factors[i] = count + 1;
+                    factors[i] = factors.GetValueOrDefault(i, 0) + 1;
                     tempNumber /= i;
                 }
                 // ループ中に tempNumber が 1 になったら終了
                 if (tempNumber == 1) break;
                 // √number も動的に更新 (最適化だが必須ではない)
-                sqrt = Basic.Sqrt(tempNumber);
+                sqrt = Sqrt(tempNumber);
             }
 
             // ループ終了後、tempNumberが1より大きい場合、それは残った大きな素因数
             if (tempNumber > 1)
             {
-                factors.TryGetValue(tempNumber, out int count);
-                factors[tempNumber] = count + 1;
+                factors[tempNumber] = factors.GetValueOrDefault(tempNumber, 0) + 1;
             }
 
             return factors;

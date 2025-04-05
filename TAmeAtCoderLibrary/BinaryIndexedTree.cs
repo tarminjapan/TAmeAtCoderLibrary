@@ -66,13 +66,13 @@ public class BinaryIndexedTree
             throw new ArgumentOutOfRangeException(nameof(maxKey), "Maximum key must be non-negative.");
         }
 
-        var half = (int)MathEx.Basic.Ceiling(maxKey, 2);
+        var half = (int)MathEx.Ceiling(maxKey, 2);
         _Layers.Add(new long[half]);
         maxKey = half;
 
         do
         {
-            half = (int)MathEx.Basic.Ceiling(maxKey, 2);
+            half = (int)MathEx.Ceiling(maxKey, 2);
             _Layers.Add(new long[half]);
             maxKey = half;
         } while (2L <= maxKey);
@@ -116,7 +116,7 @@ public class BinaryIndexedTree
 
         for (int i = 0; i < _Layers.Count; i++)
         {
-            var nextLevelKey = (int)MathEx.Basic.Ceiling(key, 2);
+            var nextLevelKey = (int)MathEx.Ceiling(key, 2);
             if (key % 2 == 1)
             {
                 _Layers[i][nextLevelKey - 1] += value;
@@ -154,7 +154,7 @@ public class BinaryIndexedTree
         {
             if (key % 2 == 1)
             {
-                sum += _Layers[i][MathEx.Basic.Ceiling(key, 2) - 1];
+                sum += _Layers[i][MathEx.Ceiling(key, 2) - 1];
                 sum = ApplyModulo(sum);
             }
 
