@@ -47,17 +47,7 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
                     exponent /= 2;
 
                     if (exponent > 0) // 最後のステップ後に二乗を避ける
-                    {
-                        // 二乗する前に潜在的なオーバーフローをチェック（簡易チェック）
-                        long sqrtMax = 3037000499; // Floor(Sqrt(long.MaxValue)) の近似値
-                        if (Math.Abs(currentPower) > sqrtMax)
-                        {
-                            // 底が sqrtMax に近い場合、より正確なチェックが必要かもしれません
-                            // この簡易チェックは多くのケースを捕捉しますが、限界付近ではすべてを捕捉するわけではありません
-                            try { var squared = currentPower * currentPower; } catch (OverflowException) { throw; }
-                        }
-                        currentPower = currentPower * currentPower;
-                    }
+                        currentPower = checked(currentPower * currentPower);
                 }
             }
         }
