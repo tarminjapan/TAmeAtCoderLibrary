@@ -6,9 +6,9 @@ internal class Program
     static void Main()
     {
         SourceExpander.Expander.Expand();
-        Common.DisableAutoFlush();
+        Common.EnableConsoleBuffering(); ;
         Solve.Run();
-        Common.Flush();
+        Common.FlushConsoleBuffer();
     }
 
     public class Solve
