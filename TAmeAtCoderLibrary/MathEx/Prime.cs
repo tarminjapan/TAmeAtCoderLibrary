@@ -75,7 +75,7 @@ public static partial class MathEx
             if (number % 2 == 0) return false;
 
             // √number まで奇数で割ってみる
-            long sqrt = Basic.Sqrt(number);
+            long sqrt = Sqrt(number);
             for (long i = 3; i <= sqrt; i += 2)
             {
                 if (number % i == 0)
@@ -109,7 +109,7 @@ public static partial class MathEx
             }
 
             long tempNumber = number;
-            long sqrt = Basic.Sqrt(tempNumber);
+            long sqrt = Sqrt(tempNumber);
 
             // 2から√numberまで割っていく
             for (long i = 2; i <= sqrt; i++)
@@ -169,7 +169,7 @@ public static partial class MathEx
             }
 
             // 3以上の奇数で割っていく (√number まで)
-            long sqrt = Basic.Sqrt(tempNumber);
+            long sqrt = Sqrt(tempNumber);
             for (long i = 3; i <= sqrt; i += 2)
             {
                 while (tempNumber % i == 0)
@@ -181,7 +181,7 @@ public static partial class MathEx
                 // ループ中に tempNumber が 1 になったら終了
                 if (tempNumber == 1) break;
                 // √number も動的に更新 (最適化だが必須ではない)
-                sqrt = Basic.Sqrt(tempNumber);
+                sqrt = Sqrt(tempNumber);
             }
 
             // ループ終了後、tempNumberが1より大きい場合、それは残った大きな素因数
