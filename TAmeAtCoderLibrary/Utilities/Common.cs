@@ -157,60 +157,6 @@ public static class Common
 
     #endregion
 
-    #region Math Operations
-
-    /// <summary>
-    /// 指定された数値を指定された非負整数のべき乗にします (繰り返し二乗法)。
-    /// </summary>
-    /// <param name="baseValue">べき乗する元の数値。</param>
-    /// <param name="exponent">べき乗する非負の指数。</param>
-    /// <returns>数値 baseValue を exponent 乗した結果。</returns>
-    /// <exception cref="ArgumentOutOfRangeException">exponent が負の場合。</exception>
-    /// <remarks>オーバーフローはチェックされません。</remarks>
-    public static long Power(long baseValue, int exponent)
-    {
-        if (exponent < 0) throw new ArgumentOutOfRangeException(nameof(exponent), "Exponent must be non-negative.");
-        long result = 1L;
-        long currentPower = baseValue;
-        int exp = exponent;
-        while (exp > 0)
-        {
-            if ((exp & 1) == 1) result *= currentPower; // checked { result *= currentPower; } for overflow check
-            if (exp > 1) currentPower *= currentPower; // checked { currentPower *= currentPower; }
-            exp >>= 1;
-        }
-        return result;
-    }
-
-    /// <summary>
-    /// 整数の切り上げ割り算を行います。
-    /// </summary>
-    /// <param name="dividend">割られる数。</param>
-    /// <param name="divisor">割る数。</param>
-    /// <returns>切り上げた割り算の結果。</returns>
-    /// <exception cref="ArgumentOutOfRangeException">divisor が 0 の場合。</exception>
-    /// <remarks>負の数に対する挙動は Math.Ceiling に近くなるように調整。厳密な仕様は要確認。</remarks>
-    public static long CeilingDivide(long dividend, long divisor)
-    {
-        if (divisor == 0) throw new ArgumentOutOfRangeException(nameof(divisor), "Divisor cannot be zero.");
-        // Use Math.Ceiling for behavior consistent across positive/negative numbers
-        return (long)Math.Ceiling((double)dividend / divisor);
-    }
-
-    /// <summary>
-    /// 整数の切り上げ割り算を行います。
-    /// </summary>
-    /// <param name="dividend">割られる数。</param>
-    /// <param name="divisor">割る数。</param>
-    /// <returns>切り上げた割り算の結果。</returns>
-    /// <exception cref="ArgumentOutOfRangeException">divisor が 0 の場合。</exception>
-    public static int CeilingDivide(int dividend, int divisor)
-    {
-        if (divisor == 0) throw new ArgumentOutOfRangeException(nameof(divisor), "Divisor cannot be zero.");
-        return (int)Math.Ceiling((double)dividend / divisor); // Easiest way for int
-    }
-    #endregion
-
     #region Console IO Optimization
 
     private static StreamWriter? bufferedWriter = null;
