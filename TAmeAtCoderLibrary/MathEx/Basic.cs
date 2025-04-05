@@ -73,16 +73,51 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
         }
 
         /// <summary>
-        /// 指定された底を非負整数乗した値を計算します。（繰り返し二乗法）
-        /// オーバーフローは例外をスローします。負の指数には対応していません。
+        /// 指定された非負整数の平方根の整数部分を計算します。（二分探索法）
         /// </summary>
-        /// <param name="baseValue">累乗される底。</param>
-        /// <param name="exponent">指数（非負整数）。</param>
-        /// <returns>baseValue の exponent 乗。指数が 0 の場合は 1。</returns>
-        /// <exception cref="ArgumentOutOfRangeException">指数が負の場合。</exception>
-        /// <exception cref="OverflowException">計算結果が long の範囲を超える場合。</exception>
-        public static long Power(long baseValue, int exponent) => Power(baseValue, (long)exponent);
+        /// <param name="number">平方根を求めたい非負整数。</param>
+        /// <returns>number の平方根の整数部分（切り捨て）。例: Sqrt(8) = 2, Sqrt(9) = 3</returns>
+        /// <exception cref="ArgumentOutOfRangeException">number が負の場合。</exception>
+        public static long Sqrt(long number)
+        {
+            if (number < 0) throw new ArgumentOutOfRangeException(nameof(number), "入力は非負整数である必要があります。");
+            return Sqrt(0L, number, number);
+        }
 
+        /// <summary>
+        /// 二分探索を使用して整数の平方根を計算します。（内部実装）
+        /// </summary>
+        /// <param name="left">探索区間の下限値。</param>
+        /// <param name="right">探索区間の上限値。</param>
+        /// <param name="number">平方根を求めたい値。</param>
+        /// <returns>number の平方根の整数部分。</returns>
+        private static long Sqrt(long left, long right, long number)
+        {
+            while (left < right)
+            {
+                // 切り上げで中間値を計算（探索区間を適切に縮小するため）
+                var middle = Ceiling(left + right, 2L);
+
+                try
+                {
+                    // 中間値の二乗を計算（オーバーフローをチェック）
+                    var squared = checked(middle * middle);
+
+                    if (squared <= number)
+                        left = middle;
+                    else
+                        right = middle - 1L;
+                }
+                catch (OverflowException)
+                {
+                    // 二乗計算でオーバーフローが発生したら、中間値は大きすぎる
+                    right = middle - 1L;
+                }
+            }
+
+            // 探索終了時の下限値が平方根の整数部分
+            return left;
+        }
 
         /// <summary>
         /// 整数除算を行い、結果を天井関数（正の無限大方向への丸め）で求めます。
@@ -110,36 +145,6 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
         }
 
         /// <summary>
-        /// 整数除算を行い、結果を天井関数（正の無限大方向への丸め）で求めます。
-        /// </summary>
-        /// <param name="dividend">割られる数（被除数）。</param>
-        /// <param name="divisor">割る数（除数）。</param>
-        /// <returns>dividend を divisor で割った結果の切り上げ。</returns>
-        /// <exception cref="DivideByZeroException">divisor が 0 の場合。</exception>
-        /// <exception cref="OverflowException">切り上げにより int の最大値を超える場合。</exception>
-        public static int Ceiling(int dividend, int divisor)
-        {
-            if (divisor == 0) throw new DivideByZeroException("除数は 0 であってはなりません。");
-
-            int quotient = dividend / divisor;
-            int remainder = dividend % divisor;
-
-            if (remainder != 0 && (dividend > 0 == divisor > 0)) // 同符号チェック
-            {
-                // 増加操作に対して checked コンテキストを使用
-                try
-                {
-                    quotient = checked(quotient + 1);
-                }
-                catch (OverflowException ex)
-                {
-                    throw new OverflowException("天井計算によりオーバーフローが発生しました。", ex);
-                }
-            }
-            return quotient;
-        }
-
-        /// <summary>
         /// 指定された数値の桁数を取得します（10進数）。
         /// </summary>
         /// <param name="number">桁数を調べたい数値。</param>
@@ -147,54 +152,24 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
         public static int CountDigits(long number)
         {
             if (number == 0) return 1;
-            // 負の数値に対して絶対値を使用
-            // Math.Log10 を使用したアプローチ（簡潔だが浮動小数点を使用）
-            if (number == long.MinValue) return 19; // Log10 の特別なケース
-            return (int)Math.Floor(Math.Log10(Math.Abs((double)number)) + 1);
 
-            // 整数のみを使用したアプローチ（潜在的に高速で、double への変換を回避）
-            // int count = 0;
-            // long absNum = Math.Abs(number);
-            // // long.MinValue の場合を特別に処理（Math.Abs(long.MinValue) == long.MinValue）
-            // if (number == long.MinValue) absNum = long.MaxValue; // または別途処理
+            int count = 0;
+            long absNum = Math.Abs(number);
+            // long.MinValue の場合を特別に処理（Math.Abs(long.MinValue) == long.MinValue）
+            if (number == long.MinValue) absNum = long.MaxValue; // または別途処理
 
-            // while (absNum > 0)
-            // {
-            //     absNum /= 10;
-            //     count++;
-            // }
-            // if (number == long.MinValue) return 19; // long.MinValue の桁数を正しく返す
-            // return count;
+            while (absNum > 0)
+            {
+                absNum /= 10;
+                count++;
+            }
+            if (number == long.MinValue) return 19; // long.MinValue の桁数を正しく返す
+            return count;
         }
 
         #endregion
 
         #region Divisors, GCD, LCM
-
-        /// <summary>
-        /// 指定された正整数の約数を昇順で取得します。
-        /// </summary>
-        /// <param name="n">約数を求めたい正整数。</param>
-        /// <returns>n の約数を格納したソート済みのセット。</returns>
-        /// <exception cref="ArgumentOutOfRangeException">n が 0 以下の場合。</exception>
-        public static SortedSet<int> Divisors(int n)
-        {
-            if (n <= 0) throw new ArgumentOutOfRangeException(nameof(n), "入力は正の整数である必要があります。");
-
-            var divisors = new SortedSet<int>();
-            for (int i = 1; i * i <= n; i++)
-            {
-                if (n % i == 0)
-                {
-                    divisors.Add(i);
-                    if (i * i != n) // 平方根を二重に追加しないようにする
-                    {
-                        divisors.Add(n / i);
-                    }
-                }
-            }
-            return divisors;
-        }
 
         /// <summary>
         /// 指定された正の長整数の約数を昇順で取得します。
@@ -208,7 +183,7 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
 
             var divisors = new SortedSet<long>();
             // sqrt(n) までチェック
-            long limit = (long)Math.Sqrt(n);
+            long limit = Sqrt(n);
             // 非常に大きな n に対して、limit チェックがオーバーフロー問題を引き起こさないようにする
             if (limit > long.MaxValue / limit && n > limit * limit) limit++; // 必要に応じて調整
 
@@ -228,32 +203,6 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
                 }
             }
             return divisors;
-        }
-
-        /// <summary>
-        /// 指定された二つの整数の最大公約数（GCD）を求めます。結果は非負です。
-        /// ユークリッドの互除法を使用します。
-        /// </summary>
-        /// <param name="a">最初の整数。</param>
-        /// <param name="b">二番目の整数。</param>
-        /// <returns>a と b の最大公約数（非負）。</returns>
-        public static int Gcd(int a, int b)
-        {
-            // 特殊ケース: GCD(int.MinValue, x) は Math.Abs に問題を引き起こす可能性があります
-            if (a == int.MinValue || b == int.MinValue)
-            {
-                // MinValue のケースに対して long バージョンにフォールバックするか、特定のロジックを実装
-                return (int)Gcd((long)a, (long)b);
-            }
-            a = Math.Abs(a);
-            b = Math.Abs(b);
-            while (b != 0)
-            {
-                int temp = b;
-                b = a % b;
-                a = temp;
-            }
-            return a;
         }
 
         /// <summary>
@@ -283,28 +232,6 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
                 a = temp;
             }
             return a;
-        }
-
-
-        /// <summary>
-        /// 指定された整数の配列の最大公約数（GCD）を求めます。結果は非負です。
-        /// </summary>
-        /// <param name="numbers">最大公約数を求めたい整数の配列。null や空であってはなりません。</param>
-        /// <returns>配列 numbers に含まれるすべての整数の最大公約数（非負）。</returns>
-        /// <exception cref="ArgumentNullException">配列が null の場合。</exception>
-        /// <exception cref="ArgumentException">配列が空の場合。</exception>
-        public static int Gcd(params int[] numbers)
-        {
-            if (numbers == null) throw new ArgumentNullException(nameof(numbers));
-            if (numbers.Length == 0) throw new ArgumentException("入力配列は空であってはなりません。", nameof(numbers));
-
-            // int.MinValue の問題を回避するために必要に応じて long にキャスト
-            if (numbers.Any(n => n == int.MinValue))
-            {
-                return (int)Gcd(numbers.Select(n => (long)n).ToArray());
-            }
-
-            return numbers.Select(Math.Abs).Aggregate(Gcd);
         }
 
         /// <summary>
@@ -582,11 +509,8 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
             if (lastDigit == 2 || lastDigit == 3 || lastDigit == 7 || lastDigit == 8) return false;
 
             // 整数平方根チェックを使用
-            long root = (long)Math.Sqrt(number);
+            long root = Sqrt(number);
             return root * root == number;
-
-            // 代替案: 整数の平方根計算（例: バビロニア法または二分探索法）
-            // 非常に大きな数値に対しては Math.Sqrt よりも若干速い場合があるが、通常は Math.Sqrt で十分
         }
 
         /// <summary>
