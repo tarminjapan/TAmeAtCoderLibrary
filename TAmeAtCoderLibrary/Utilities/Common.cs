@@ -22,7 +22,7 @@ public static class Common
     /// <param name="min">範囲の最小値 (含む)。</param>
     /// <param name="max">範囲の最大値 (含む)。</param>
     /// <returns>値が範囲内にある場合は true、それ以外の場合は false。</returns>
-    public static bool IsInRange<T>(T value, T min, T max) where T : IComparable<T> => min.CompareTo(value) <= 0 && value.CompareTo(max) <= 0;
+    public static bool IsInRange<T>(T value, T min, T max) where T : IComparable<T> => min.CompareTo(value) <= 0 && value.CompareTo(max) <= 0; // Returns true if min <= value <= max
 
     #region Cumulative Sum
 
