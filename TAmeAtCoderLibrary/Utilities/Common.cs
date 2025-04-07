@@ -14,6 +14,16 @@ public static class Common
     /// <summary>小文字アルファベットの文字配列。</summary>
     public static readonly char[] LowerAlphabets = "abcdefghijklmnopqrstuvwxyz".ToCharArray();
 
+    /// <summary>
+    /// 指定された値が指定された範囲内にあるかどうかを確認します。
+    /// </summary>
+    /// <typeparam name="T">比較する数値型。</typeparam>
+    /// <param name="value">確認する値。</param>
+    /// <param name="min">範囲の最小値 (含む)。</param>
+    /// <param name="max">範囲の最大値 (含む)。</param>
+    /// <returns>値が範囲内にある場合は true、それ以外の場合は false。</returns>
+    public static bool IsInRange<T>(T value, T min, T max) where T : IComparable<T> => min.CompareTo(value) <= 0 && value.CompareTo(max) <= 0;
+
     #region Cumulative Sum
 
     /// <summary>
