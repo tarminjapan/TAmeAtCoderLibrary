@@ -60,53 +60,46 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
     }
 
     /// <summary>
-    /// 指定された非負整数の平方根の整数部分を計算します。（二分探索法）
+    /// 指定された非負整数の平方根の整数部分を計算します。（二分探索法）但し、sqrt値の最大値はint32まで対応
     /// </summary>
     /// <param name="number">平方根を求めたい非負整数。</param>
     /// <returns>number の平方根の整数部分（切り捨て）。例: Sqrt(8) = 2, Sqrt(9) = 3</returns>
     /// <exception cref="ArgumentOutOfRangeException">number が負の場合。</exception>
     public static long Sqrt(long number)
     {
-        if (number < 0) throw new ArgumentOutOfRangeException(nameof(number), "入力は非負整数である必要があります。");
-        return Sqrt(0L, number, number);
+        if (number < 0)
+            throw new ArgumentOutOfRangeException(nameof(number), "入力は非負整数である必要があります。");
+
+        // int32に収まる場合は標準の関数を使用する。（パフォーマンス向上のため）
+        if (number <= int.MaxValue)
+            return (long)Math.Sqrt(number);
+
+        return SqrtInternal(0L, number, number);
     }
 
     /// <summary>
-    /// 二分探索を使用して整数の平方根を計算します。（内部実装）
+    /// 二分探索を使用して整数の平方根を計算します。（内部実装）　但し、sqrt値の最大値はint32まで対応
     /// </summary>
     /// <param name="left">探索区間の下限値。</param>
     /// <param name="right">探索区間の上限値。</param>
     /// <param name="number">平方根を求めたい値。</param>
     /// <returns>number の平方根の整数部分。</returns>
-    private static long Sqrt(long left, long right, long number)
+    private static long SqrtInternal(long left, long right, long number)
     {
+        right = Math.Max((long)int.MaxValue, right);
+
         while (left < right)
         {
             // 切り上げで中間値を計算（探索区間を適切に縮小するため）
             var middle = Ceiling(left + right, 2L);
 
-            // オーバーフローの可能性を事前にチェックすることで、try-catch ブロックによるパフォーマンス低下を回避する。
-            if (long.MaxValue / middle < middle)
-            {
-                right = middle - 1L;
-                continue;
-            }
+            // 中間値の二乗を計算
+            var squared = checked(middle * middle);
 
-            try
-            {
-                // 中間値の二乗を計算
-                var squared = checked(middle * middle);
-
-                if (squared <= number)
-                    left = middle;
-                else
-                    right = middle - 1L;
-            }
-            catch (OverflowException)
-            {
-                // 二乗計算でオーバーフローが発生したら、中間値は大きすぎる
+            if (squared <= number)
+                left = middle;
+            else
                 right = middle - 1L;
-            }
         }
 
         // 探索終了時の下限値が平方根の整数部分
