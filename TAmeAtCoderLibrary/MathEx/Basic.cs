@@ -85,15 +85,15 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
             // 切り上げで中間値を計算（探索区間を適切に縮小するため）
             var middle = Ceiling(left + right, 2L);
 
+            // オーバーフローの可能性を事前にチェックすることで、try-catch ブロックによるパフォーマンス低下を回避する。
+            if (long.MaxValue / middle < middle)
+            {
+                right = middle - 1L;
+                continue;
+            }
+
             try
             {
-                // オーバーフローの可能性を事前にチェックすることで、try-catch ブロックによるパフォーマンス低下を回避する。
-                if ((long)int.MaxValue < middle)
-                {
-                    right = middle - 1L;
-                    continue;
-                }
-
                 // 中間値の二乗を計算
                 var squared = checked(middle * middle);
 
