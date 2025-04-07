@@ -87,7 +87,14 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
 
             try
             {
-                // 中間値の二乗を計算（オーバーフローをチェック）
+                // オーバーフローの可能性を事前にチェックすることで、try-catch ブロックによるパフォーマンス低下を回避する。
+                if ((long)int.MaxValue < middle)
+                {
+                    right = middle - 1L;
+                    continue;
+                }
+
+                // 中間値の二乗を計算
                 var squared = checked(middle * middle);
 
                 if (squared <= number)
@@ -381,7 +388,6 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
         }
         return result;
     }
-
 
     /// <summary>
     /// 拡張ユークリッドの互除法を用いて、a*x + b*y = gcd(a, b) を満たす (gcd, x, y) を求めます。
