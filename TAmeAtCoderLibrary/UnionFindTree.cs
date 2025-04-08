@@ -1,7 +1,7 @@
-#nullable enable 
+#nullable enable
 using System.Diagnostics.CodeAnalysis;
 
-namespace TJAtCoderLibs;
+namespace TAmeAtCoderLibrary;
 
 /// <summary>
 /// Union-Find Tree (Disjoint Set Union) データ構造。
