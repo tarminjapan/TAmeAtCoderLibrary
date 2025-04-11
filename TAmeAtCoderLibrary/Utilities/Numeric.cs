@@ -215,15 +215,12 @@ public static class Numeric
                 if (digit < 0 || digit >= sourceBase)
                     throw new ArgumentException($"Invalid digit '{digit}' found in the input array for base {sourceBase}.", nameof(digits));
 
-                // decimalValue += (long)digit * power; // キャストは安全だが念のため
-                // より安全にするなら
-                if (power > long.MaxValue / digit && digit != 0) // digitが0なら乗算は0なのでOK
+                if (digit != 0 && power > long.MaxValue / digit)
                     throw new OverflowException("Intermediate multiplication result exceeds Long.MaxValue.");
-                long term = (long)digit * power;
+                long term = digit * power;
                 if (decimalValue > long.MaxValue - term)
                     throw new OverflowException("Final decimal value exceeds Long.MaxValue.");
                 decimalValue += term;
-
 
                 if (i > 0)
                 {
@@ -232,7 +229,7 @@ public static class Numeric
                     power *= sourceBase;
                 }
             }
-        } // End checked
+        }
 
         return decimalValue;
     }

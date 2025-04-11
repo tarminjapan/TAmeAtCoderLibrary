@@ -15,38 +15,78 @@ internal class Program
     {
         public static void Run()
         {
-            var iN = ReadLine.Int();
-            var iAB = ReadLine.IntMatrix(iN - 1);
+            // https://atcoder.jp/contests/abc261/tasks/abc261_e
 
-            var linkedList = new LinkedList<int>();
-            var dic = new Dictionary<int, SortedSet<int>>();
+            var inputs = ReadLine.Ints();
+            int iN = inputs[0], iC = inputs[1];
+            var iTA = ReadLine.IntMatrix(iN);
 
-            foreach (var ab in iAB)
+            var maxDigits = 30;
+            var tbins = Enumerable.Range(0, 2).Select(i => Enumerable.Repeat(i, maxDigits).ToArray()).ToArray();
+            var cdec = iC;
+
+            for (int i = 0; i < iN; i++)
             {
-                int a = ab[0], b = ab[1];
-                dic.TryAdd(a, new SortedSet<int>());
-                dic.TryAdd(b, new SortedSet<int>());
-                dic[a].Add(b);
-                dic[b].Add(a);
+                int t = iTA[i][0], a = iTA[i][1];
+
+                if (t == 1)
+                {
+                    if (1 <= i)
+                        cdec = GetCurrent(cdec, tbins, maxDigits);
+
+                    cdec &= a;
+
+                    var abin = Numeric.ConvertToBinary(a, maxDigits);
+
+                    for (int j = 0; j < maxDigits; j++)
+                    {
+                        tbins[0][j] &= abin[j];
+                        tbins[1][j] &= abin[j];
+                    }
+                }
+                else if (t == 2)
+                {
+                    if (1 <= i)
+                        cdec = GetCurrent(cdec, tbins, maxDigits);
+
+                    cdec |= a;
+
+                    var abin = Numeric.ConvertToBinary(a, maxDigits);
+
+                    for (int j = 0; j < maxDigits; j++)
+                    {
+                        tbins[0][j] |= abin[j];
+                        tbins[1][j] |= abin[j];
+                    }
+                }
+                else
+                {
+                    if (1 <= i)
+                        cdec = GetCurrent(cdec, tbins, maxDigits);
+
+                    cdec ^= a;
+
+                    var abin = Numeric.ConvertToBinary(a, maxDigits);
+
+                    for (int j = 0; j < maxDigits; j++)
+                    {
+                        tbins[0][j] ^= abin[j];
+                        tbins[1][j] ^= abin[j];
+                    }
+                }
+
+                Console.WriteLine(cdec);
             }
-
-            AddRoute(linkedList, 1, dic);
-
-            Console.WriteLine(string.Join(" ", linkedList));
         }
 
-        public static void AddRoute(LinkedList<int> linkedList, int current, Dictionary<int, SortedSet<int>> dic)
+        public static int GetCurrent(int cdec, int[][] tbins, int maxDigits)
         {
-            linkedList.AddLast(current);
+            var bin = Numeric.ConvertToBinary(cdec, 30);
 
-            if (dic.TryGetValue(current, out var nexts))
-                foreach (var next in nexts.ToArray())
-                {
-                    dic[current].Remove(next);
-                    dic[next].Remove(current);
-                    AddRoute(linkedList, next, dic);
-                    linkedList.AddLast(current);
-                }
+            for (int i = 0; i < maxDigits; i++)
+                bin[i] = tbins[bin[i]][i];
+
+            return (int)Numeric.ConvertToDecimal(bin, 2);
         }
     }
 }
