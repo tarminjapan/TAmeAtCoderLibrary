@@ -82,6 +82,23 @@ public class SimpleDirectedGraph
     }
 
     /// <summary>
+    /// グラフに重み 1 の辺を追加します。
+    /// 頂点が存在しない場合は自動的に追加されます。
+    /// 既に辺が存在する場合は重みが 1 に上書きされます。
+    /// </summary>
+    /// <remarks>
+    /// このオーバーロードは、<see cref="AddEdges(int[][])"/> メソッドで重みが省略された場合の挙動と一貫性を持たせるため、
+    /// デフォルトの重みを 1L として扱います。
+    /// </remarks>
+    /// <param name="from">辺の始点。</param>
+    /// <param name="to">辺の終点。</param>
+    public void AddEdge(int from, int to)
+    {
+        // AddEdges(int[][]) との一貫性のため、デフォルトの重みは 1L とする
+        AddEdge(from, to, 1L);
+    }
+
+    /// <summary>
     /// グラフに重み付きの辺を追加します。
     /// 頂点が存在しない場合は自動的に追加されます。
     /// 既に辺が存在する場合は重みが上書きされます。
