@@ -49,35 +49,24 @@ public static partial class MathEx
             long sum_term;
             try
             {
-                // checkedブロックでオーバーフローを検出できるようにする (オプション)
-                // sum_term = checked(firstTerm + lastTerm);
-                sum_term = firstTerm + lastTerm; // checked を使わない場合
+                sum_term = checked(firstTerm + lastTerm);
+
+                if (count % 2 == 0)
+                {
+                    return checked((count / 2) * sum_term);
+                }
+                else if (sum_term % 2 == 0)
+                {
+                    return checked(count * (sum_term / 2));
+                }
+                else
+                {
+                    return checked((count * sum_term) / 2);
+                }
             }
             catch (OverflowException)
             {
-                // BigInteger を使うなどの代替処理が必要になる場合
-                throw; // または BigInteger で再計算
-            }
-
-
-            if (count % 2 == 0)
-            {
-                // return checked((count / 2) * sum_term); // checked
-                return (count / 2) * sum_term;
-            }
-            else if (sum_term % 2 == 0)
-            {
-                // return checked(count * (sum_term / 2)); // checked
-                return count * (sum_term / 2);
-            }
-            else
-            {
-                // count も sum_term も奇数の場合、乗算結果は奇数となり、2で割り切れない。
-                // これは整数等差数列の和としては通常発生しないはず。
-                // (nが奇数なら a+l = 2a+(n-1)d は偶数になるため)
-                // 必要であれば例外をスローするか、警告を出す
-                // return checked((count * sum_term) / 2); // checked
-                return (count * sum_term) / 2; // 結果は切り捨てられる
+                throw;
             }
         }
 
@@ -102,31 +91,24 @@ public static partial class MathEx
             long term1, term2, inner_sum;
             try
             {
-                // checkedブロックでオーバーフローを検出できるようにする (オプション)
-                // term1 = checked(2 * firstTerm);
-                // term2 = checked((count - 1) * commonDifference);
-                // inner_sum = checked(term1 + term2);
-                term1 = 2 * firstTerm;
-                term2 = (count - 1) * commonDifference;
-                inner_sum = term1 + term2;
+                term1 = checked(2 * firstTerm);
+                term2 = checked((count - 1) * commonDifference);
+                inner_sum = checked(term1 + term2);
             }
             catch (OverflowException)
             {
-                // BigInteger を使うなどの代替処理が必要になる場合
-                throw; // または BigInteger で再計算
+                throw;
             }
 
 
             if (count % 2 == 0)
             {
-                // return checked((count / 2) * inner_sum); // checked
-                return (count / 2) * inner_sum;
+                return checked((count / 2) * inner_sum);
             }
             else
             {
                 // nが奇数の場合、2a + (n-1)d は必ず偶数になる
-                // return checked(count * (inner_sum / 2)); // checked
-                return count * (inner_sum / 2);
+                return checked(count * (inner_sum / 2));
             }
         }
 
@@ -207,7 +189,7 @@ public static partial class MathEx
                 else // 法が偶数
                 {
                     // このメソッドでは安全に計算できないため例外をスロー
-                    throw new NotSupportedException("法が偶数の場合、SumModuloFromLastTerm の使用は推奨されません。SumModuloFromDifference を使用してください。");
+                    throw new NotSupportedException("法が偶数の場合、SumModuloFromLastTerm はオーバーフローの可能性があるため、SumModuloFromDifference の使用を強く推奨します。");
                 }
             }
             return result;
