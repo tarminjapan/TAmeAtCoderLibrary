@@ -94,12 +94,20 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
             var middle = Ceiling(left + right, 2L);
 
             // 中間値の二乗を計算
-            var squared = checked(middle * middle);
+            try
+            {
+                var squared = checked(middle * middle);
 
-            if (squared <= number)
-                left = middle;
-            else
+                if (squared <= number)
+                    left = middle;
+                else
+                    right = middle - 1L;
+            }
+            catch (OverflowException)
+            {
                 right = middle - 1L;
+                continue;
+            }
         }
 
         // 探索終了時の下限値が平方根の整数部分
