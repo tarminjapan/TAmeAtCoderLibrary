@@ -6,87 +6,48 @@ internal class Program
     static void Main()
     {
         SourceExpander.Expander.Expand();
-        Common.EnableConsoleBuffering(); ;
-        Solve.Run();
+        Common.EnableConsoleBuffering();
+        var solve = new Solve();
+        solve.Run();
         Common.FlushConsoleBuffer();
     }
 
     public class Solve
     {
-        public static void Run()
+        public void Run()
         {
-            // https://atcoder.jp/contests/abc261/tasks/abc261_e
-
             var inputs = ReadLine.Ints();
-            int iN = inputs[0], iC = inputs[1];
-            var iTA = ReadLine.IntMatrix(iN);
+            int iN = inputs[0], iM = inputs[1], iQ = inputs[2];
+            var iABC = ReadLine.IntMatrix(iM);
+            var iUVW = ReadLine.IntMatrix(iQ);
 
-            var maxDigits = 30;
-            var tbins = Enumerable.Range(0, 2).Select(i => Enumerable.Repeat(i, maxDigits).ToArray()).ToArray();
-            var cdec = iC;
+            var uf = new UnionFindTree<int>();
+            var edges1 = iABC.Select((x, i) => new int[] { x[0], x[1], x[2], 0, i }).ToArray();
+            var edges2 = iUVW.Select((x, i) => new int[] { x[0], x[1], x[2], 1, i }).ToArray();
+            var edges = edges1.Concat(edges2).OrderBy(x => x[2]).ToArray();
+            var res = new bool[iQ];
 
-            for (int i = 0; i < iN; i++)
+            for (int i = 1; i <= iN; i++)
+                uf.Add(i);
+
+            foreach (var edge in edges)
             {
-                int t = iTA[i][0], a = iTA[i][1];
+                int v1 = edge[0], v2 = edge[1], w = edge[2], t = edge[3], i = edge[4];
+
+                var r1 = uf.FindRoot(v1);
+                var r2 = uf.FindRoot(v2);
+
+                if (r1 == r2)
+                    continue;
 
                 if (t == 1)
-                {
-                    if (1 <= i)
-                        cdec = GetCurrent(cdec, tbins, maxDigits);
-
-                    cdec &= a;
-
-                    var abin = Numeric.ConvertToBinary(a, maxDigits);
-
-                    for (int j = 0; j < maxDigits; j++)
-                    {
-                        tbins[0][j] &= abin[j];
-                        tbins[1][j] &= abin[j];
-                    }
-                }
-                else if (t == 2)
-                {
-                    if (1 <= i)
-                        cdec = GetCurrent(cdec, tbins, maxDigits);
-
-                    cdec |= a;
-
-                    var abin = Numeric.ConvertToBinary(a, maxDigits);
-
-                    for (int j = 0; j < maxDigits; j++)
-                    {
-                        tbins[0][j] |= abin[j];
-                        tbins[1][j] |= abin[j];
-                    }
-                }
+                    res[i] = true;
                 else
-                {
-                    if (1 <= i)
-                        cdec = GetCurrent(cdec, tbins, maxDigits);
-
-                    cdec ^= a;
-
-                    var abin = Numeric.ConvertToBinary(a, maxDigits);
-
-                    for (int j = 0; j < maxDigits; j++)
-                    {
-                        tbins[0][j] ^= abin[j];
-                        tbins[1][j] ^= abin[j];
-                    }
-                }
-
-                Console.WriteLine(cdec);
+                    uf.Union(r1, r2);
             }
-        }
 
-        public static int GetCurrent(int cdec, int[][] tbins, int maxDigits)
-        {
-            var bin = Numeric.ConvertToBinary(cdec, 30);
-
-            for (int i = 0; i < maxDigits; i++)
-                bin[i] = tbins[bin[i]][i];
-
-            return (int)Numeric.ConvertToDecimal(bin, 2);
+            foreach (var bl in res)
+                Console.WriteLine(bl ? "Yes" : "No");
         }
     }
 }
