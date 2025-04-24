@@ -112,6 +112,108 @@ public static partial class MathEx
             }
         }
 
+        /// <summary>
+        /// 初項 <paramref name="firstTerm"/>、公差 <paramref name="commonDifference"/> を持ち、
+        /// 項の値が <paramref name="lastTerm"/> 以下であるような全ての項からなる等差数列の和を計算します。
+        /// </summary>
+        /// <remarks>
+        /// このメソッドは、数列の項のうち <paramref name="lastTerm"/> 以下である最大の項 (`effectiveLastTerm`) を特定し、
+        /// 初項からその `effectiveLastTerm` までの和を計算します。
+        /// `effectiveLastTerm` は <c>firstTerm + k * commonDifference <= lastTerm</c> を満たす最大の非負整数 <c>k</c> を用いて決定されます。
+        /// 例えば、<c>firstTerm=1, commonDifference=3, lastTerm=9</c> の場合、数列は 1, 4, 7, 10,... となり、
+        /// 9 以下の最大の項は 7 (k=2) です。このメソッドは 1 + 4 + 7 = 12 を返します。
+        /// 条件を満たす項が存在しない場合（例: <c>firstTerm=10, commonDifference=2, lastTerm=5</c>）、和は 0 になります。
+        /// 計算の途中で <see cref="long"/> 型の範囲を超える場合、オーバーフローが発生する可能性があります。
+        /// この実装では中間計算および最終的な和の計算に <c>checked</c> コンテキストを使用し、オーバーフロー発生時に <see cref="OverflowException"/> をスローします。
+        /// </remarks>
+        /// <param name="firstTerm">初項。</param>
+        /// <param name="lastTerm">項の値の上限。</param>
+        /// <param name="commonDifference">公差。</param>
+        /// <returns>条件を満たす等差数列の和。</returns>
+        /// <exception cref="OverflowException">計算中にオーバーフローが発生した場合にスローされます。</exception>
+        public static long SumFromDifferenceAndLastTerm(long firstTerm, long lastTerm, long commonDifference)
+        {
+            // --- 有効な末項 (effectiveLastTerm) と項数 (n) を決定 ---
+            long effectiveLastTerm;
+            long n; // 項数
+
+            // 公差ゼロ
+            if (commonDifference == 0)
+            {
+                if (firstTerm <= lastTerm)
+                {
+                    effectiveLastTerm = firstTerm;
+                    n = 1;
+                }
+                else
+                {
+                    return 0; // 条件を満たす項なし
+                }
+            }
+            // 公差が正 (増加数列)
+            else if (commonDifference > 0)
+            {
+                if (lastTerm < firstTerm)
+                {
+                    return 0; // 条件を満たす項なし
+                }
+                // firstTerm + k * d <= lastTerm を満たす最大の非負整数 k を求める
+                long diff = lastTerm - firstTerm;
+                long k_max = diff / commonDifference; // floor(diff / d)
+                n = k_max + 1;
+                try
+                {
+                    effectiveLastTerm = checked(firstTerm + checked(k_max * commonDifference));
+                }
+                catch (OverflowException ex)
+                {
+                    throw new OverflowException("有効な末項の計算中にオーバーフローが発生しました。", ex);
+                }
+            }
+            // 公差が負 (減少数列)
+            else // commonDifference < 0
+            {
+                if (firstTerm <= lastTerm)
+                {
+                    // 初項が最大の条件を満たす項
+                    effectiveLastTerm = firstTerm;
+                    n = 1;
+                }
+                else // firstTerm > lastTerm
+                {
+                    // firstTerm + k * d <= lastTerm を満たす最小の非負整数 k (k_min) を求める
+                    // k >= (firstTerm - lastTerm) / (-d)
+                    long neg_d = -commonDifference;
+                    long num = firstTerm - lastTerm;
+                    // k_min = ceil(num / neg_d) = (num + neg_d - 1) / neg_d
+                    long k_min_numerator;
+                    try
+                    {
+                        k_min_numerator = checked(num + neg_d - 1);
+                    }
+                    catch (OverflowException ex)
+                    {
+                        throw new OverflowException("項インデックス k_min の計算中にオーバーフローが発生しました。", ex);
+                    }
+                    long k_min = k_min_numerator / neg_d;
+                    n = k_min + 1;
+                    try
+                    {
+                        effectiveLastTerm = checked(firstTerm + checked(k_min * commonDifference));
+                    }
+                    catch (OverflowException ex)
+                    {
+                        throw new OverflowException("有効な末項の計算中にオーバーフローが発生しました。", ex);
+                    }
+                }
+            }
+
+            // --- 和の計算 ---
+            // n=0 の場合は上で return 済。n >= 1 の場合、SumFromLastTerm で和を計算。
+            // SumFromLastTerm は内部で checked 計算を行う。
+            return SumFromLastTerm(firstTerm, effectiveLastTerm, n);
+        }
+
         // --- 剰余計算 ---
 
         // 剰余計算のヘルパー (負の数にならないように)
