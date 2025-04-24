@@ -1,29 +1,19 @@
+#nullable enable
+
 namespace TAmeAtCoderLibrary;
 
 /// <summary>
 /// 頂点が非負整数で識別され、辺が長整数の重みを持つことができる単純無向グラフを表します。
 /// このグラフは自己ループを許可しません。
-/// 頂点と辺の追加/削除、隣接頂点と辺の重みの取得、葉ノードの検出、サイクルの検出などの機能を提供します。
+/// このクラスは SimpleDirectedGraph を継承し、無向グラフのセマンティクスを提供します。
 /// 重みが指定されない場合、デフォルトで 1 が設定されます。
 /// </summary>
-public class SimpleUndirectedGraph
+public class SimpleUndirectedGraph : SimpleDirectedGraph
 {
-    /// <summary>
-    /// グラフの隣接リストを格納します。
-    /// キー: 頂点ID。
-    /// 値: キーが隣接頂点ID、値が辺の重みである辞書。
-    /// </summary>
-    private readonly Dictionary<int, Dictionary<int, long>> _adjacencyList = new();
-
-    /// <summary>
-    /// グラフ内の辺の数を格納します。
-    /// </summary>
-    private int _edgeCount = 0;
-
     /// <summary>
     /// 空の単純無向グラフを初期化します。
     /// </summary>
-    public SimpleUndirectedGraph() { }
+    public SimpleUndirectedGraph() : base() { }
 
     /// <summary>
     /// 指定した最大ID値までの頂点と辺のリストを持つ単純無向グラフを初期化します。
@@ -36,7 +26,7 @@ public class SimpleUndirectedGraph
     /// <exception cref="ArgumentNullException"><paramref name="edges"/>がnullの場合にスローされます。</exception>
     /// <exception cref="ArgumentException"><paramref name="edges"/>内の任意の辺の配列がnullまたは正確に2つの頂点IDを含まない場合にスローされます。</exception>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="edges"/>内の任意の頂点IDが負の場合にスローされます。</exception>
-    public SimpleUndirectedGraph(int maxVertexId, int[][] edges)
+    public SimpleUndirectedGraph(int maxVertexId, int[][] edges) : base() // 基底クラスの空コンストラクタを呼び出す
     {
         if (maxVertexId < 0)
             throw new ArgumentOutOfRangeException(nameof(maxVertexId), "Maximum vertex ID cannot be negative.");
@@ -44,10 +34,12 @@ public class SimpleUndirectedGraph
         // 1からmaxVertexIdまでの頂点を事前に追加
         for (int vertexId = 1; vertexId <= maxVertexId; vertexId++)
         {
-            _adjacencyList.TryAdd(vertexId, new Dictionary<int, long>());
+            // 基底クラスの AddVertex を使う (存在チェックは内部で行われる)
+            base.AddVertex(vertexId);
         }
 
-        AddEdges(edges); // 提供された辺を追加 (デフォルト重み 1 で追加される)
+        // 提供された辺を追加 (このクラスの AddEdges を使う)
+        this.AddEdges(edges);
     }
 
     /// <summary>
@@ -59,37 +51,17 @@ public class SimpleUndirectedGraph
     /// <exception cref="ArgumentNullException"><paramref name="edges"/>がnullの場合にスローされます。</exception>
     /// <exception cref="ArgumentException"><paramref name="edges"/>内の任意の辺の配列がnullまたは正確に2つの頂点IDを含まない場合にスローされます。</exception>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="edges"/>内の任意の頂点IDが負の場合にスローされます。</exception>
-    public SimpleUndirectedGraph(int[][] edges)
+    public SimpleUndirectedGraph(int[][] edges) : base() // 基底クラスの空コンストラクタを呼び出す
     {
-        AddEdges(edges); // デフォルト重み 1 で追加される
+        // このクラスの AddEdges を使う
+        this.AddEdges(edges);
     }
-
-    /// <summary>
-    /// グラフ内の現在の頂点数を取得します。
-    /// </summary>
-    public int VertexCount => _adjacencyList.Count;
 
     /// <summary>
     /// グラフ内の現在の辺の数を取得します。
     /// 自己ループはカウントされません。各辺は1回だけカウントされます。
     /// </summary>
-    public int EdgeCount => _edgeCount;
-
-    /// <summary>
-    /// グラフに頂点を追加します。
-    /// </summary>
-    /// <param name="vertex">追加する頂点のID。非負でなければなりません。</param>
-    /// <exception cref="ArgumentOutOfRangeException">頂点IDが負の場合にスローされます。</exception>
-    /// <exception cref="ArgumentException">同じIDを持つ頂点が既に存在する場合にスローされます。</exception>
-    public void AddVertex(int vertex)
-    {
-        if (vertex < 0)
-            throw new ArgumentOutOfRangeException(nameof(vertex), "Vertex ID cannot be negative.");
-        if (_adjacencyList.ContainsKey(vertex))
-            throw new ArgumentException($"Vertex {vertex} already exists.", nameof(vertex));
-
-        _adjacencyList.Add(vertex, new Dictionary<int, long>());
-    }
+    public new int EdgeCount => base.EdgeCount / 2; // 基底クラスの有向辺カウントの半分
 
     /// <summary>
     /// デフォルトの重み1で複数の辺をグラフに追加します。
@@ -101,17 +73,24 @@ public class SimpleUndirectedGraph
     /// <exception cref="ArgumentNullException"><paramref name="edges"/>がnullの場合にスローされます。</exception>
     /// <exception cref="ArgumentException">任意の辺の配列がnullまたは正確に2つの頂点IDを含まない場合にスローされます。</exception>
     /// <exception cref="ArgumentOutOfRangeException">任意の頂点IDが負の場合にスローされます。</exception>
-    public void AddEdges(int[][] edges)
+    public new void AddEdges(int[][] edges) // 基底クラスにも同名のメソッドがあるため new で隠蔽
     {
         ArgumentNullException.ThrowIfNull(edges);
 
         foreach (var edge in edges)
         {
-            if (edge == null || edge.Length != 2)
-                throw new ArgumentException("Each edge array must contain exactly two vertex IDs.", nameof(edges));
+            // 無向グラフなので、辺は2つの頂点IDのみを持つことを期待
+            if (edge == null || edge.Length < 2)
+                throw new ArgumentException("Each edge array must contain at least two vertex IDs.", nameof(edges));
+            if (edge.Length > 3)
+                throw new ArgumentException("Undirected edge array should be {vertexA, vertexB} or {vertexA, vertexB, weight}.", nameof(edges));
 
-            // AddEdge(int, int) を呼び出すことで、デフォルト重み 1 が使用される
-            AddEdge(edge[0], edge[1]);
+            int vertexA = edge[0];
+            int vertexB = edge[1];
+            long weight = (edge.Length == 3) ? edge[2] : 1L; // 重みが指定されていれば使う
+
+            // このクラスの AddEdge(int, int, long) を呼び出す
+            this.AddEdge(vertexA, vertexB, weight);
         }
     }
 
@@ -123,44 +102,36 @@ public class SimpleUndirectedGraph
     /// <param name="vertexA">最初の頂点のID。非負でなければなりません。</param>
     /// <param name="vertexB">2番目の頂点のID。非負でなければなりません。</param>
     /// <exception cref="ArgumentOutOfRangeException">任意の頂点IDが負の場合にスローされます。</exception>
-    public void AddEdge(int vertexA, int vertexB)
+    public new void AddEdge(int vertexA, int vertexB) // 基底クラスにも同名のメソッドがあるため new で隠蔽
     {
-        // デフォルトの重みを 1L に変更
-        AddEdge(vertexA, vertexB, 1L);
+        // このクラスの AddEdge(int, int, long) を呼び出す
+        this.AddEdge(vertexA, vertexB, 1L);
     }
 
     /// <summary>
     /// 指定された重み付きの辺を2つの頂点間に追加します。
     /// 頂点が存在しない場合は自動的に追加されます。
-    /// 辺が既に存在する場合、または自己ループになる場合、このメソッドは何もしません（重みを変更するには<see cref="AddOrUpdateEdge"/>を使用してください）。
+    /// 辺が既に存在する場合、または自己ループになる場合、このメソッドは何もしません。
+    /// 重みを更新したい場合は <see cref="AddOrUpdateEdge"/> を使用してください。
     /// </summary>
     /// <param name="vertexA">最初の頂点のID。非負でなければなりません。</param>
     /// <param name="vertexB">2番目の頂点のID。非負でなければなりません。</param>
     /// <param name="weight">辺の重み。</param>
     /// <exception cref="ArgumentOutOfRangeException">任意の頂点IDが負の場合にスローされます。</exception>
-    public void AddEdge(int vertexA, int vertexB, long weight)
+    public void AddEdge(int vertexA, int vertexB, long weight) // 基底クラスにこのシグネチャはないため new は不要
     {
         // 自己ループは許可しない
         if (vertexA == vertexB) return;
 
-        // 潜在的に追加する前に頂点が非負であることを確認
-        if (vertexA < 0) throw new ArgumentOutOfRangeException(nameof(vertexA), "Vertex ID cannot be negative.");
-        if (vertexB < 0) throw new ArgumentOutOfRangeException(nameof(vertexB), "Vertex ID cannot be negative.");
+        // 頂点IDのチェックは基底クラスの TryAddEdge が行います。
+        // TryAddEdge は頂点がなければ追加し、辺がなければ追加します。
+        // 辺が既に存在する場合は false を返します。
+        // 無向グラフなので、両方向の辺を追加しようと試みます。
+        base.TryAddEdge(vertexA, vertexB, weight);
+        base.TryAddEdge(vertexB, vertexA, weight);
 
-        // 頂点が存在しない場合は追加
-        AddVertexIfNotExists(vertexA);
-        AddVertexIfNotExists(vertexB);
-
-        // TryAddは既存の辺の重みを上書きせず、キーが存在する場合の例外を回避します
-        // また、辺が新たに追加されたかどうかを返します
-        bool addedA = _adjacencyList[vertexA].TryAdd(vertexB, weight);
-        bool addedB = _adjacencyList[vertexB].TryAdd(vertexA, weight);
-
-        // 両方向の追加が成功した場合のみ（つまり、辺が新規の場合のみ）辺カウントを増やす
-        if (addedA && addedB)
-        {
-            _edgeCount++;
-        }
+        // EdgeCount は基底クラスで管理され、このクラスの EdgeCount プロパティで /2 されます。
+        // TryAddEdge が成功した場合に基底クラスの EdgeCount がインクリメントされます。
     }
 
     /// <summary>
@@ -172,54 +143,52 @@ public class SimpleUndirectedGraph
     /// <param name="vertexB">2番目の頂点のID。非負でなければなりません。</param>
     /// <param name="weight">辺の重み。</param>
     /// <exception cref="ArgumentOutOfRangeException">任意の頂点IDが負の場合にスローされます。</exception>
-    public void AddOrUpdateEdge(int vertexA, int vertexB, long weight)
+    public new void AddOrUpdateEdge(int vertexA, int vertexB, long weight) // 基底クラスにも同名のメソッドがあるため new で隠蔽
     {
         // 自己ループは許可しない
         if (vertexA == vertexB) return;
 
-        if (vertexA < 0) throw new ArgumentOutOfRangeException(nameof(vertexA), "Vertex ID cannot be negative.");
-        if (vertexB < 0) throw new ArgumentOutOfRangeException(nameof(vertexB), "Vertex ID cannot be negative.");
+        // 頂点IDのチェックは基底クラスの AddOrUpdateEdge が行います。
+        // AddOrUpdateEdge は頂点がなければ追加し、辺を追加または更新します。
+        // 無向グラフなので、両方向の辺を追加/更新します。
+        base.AddOrUpdateEdge(vertexA, vertexB, weight);
+        base.AddOrUpdateEdge(vertexB, vertexA, weight);
 
-        AddVertexIfNotExists(vertexA);
-        AddVertexIfNotExists(vertexB);
-
-        // 辺が新たに追加されるか確認
-        bool edgeExists = _adjacencyList[vertexA].ContainsKey(vertexB);
-
-        // インデクサーを使用して重みを直接追加または更新
-        _adjacencyList[vertexA][vertexB] = weight;
-        _adjacencyList[vertexB][vertexA] = weight;
-
-        // 辺が存在しなかった場合に辺カウントを増やす
-        if (!edgeExists)
-        {
-            _edgeCount++;
-        }
+        // EdgeCount は基底クラスで管理されます。
+        // AddOrUpdateEdge が新しい辺を追加した場合に基底クラスの EdgeCount がインクリメントされます。
     }
 
     /// <summary>
     /// 頂点とそれに接続するすべての辺をグラフから削除します。
+    /// 注意: この操作は頂点に接続する辺を削除しますが、基底クラスの制約により、
+    /// 頂点自体（キー）は隣接リストに残る可能性があります（辺を持たない状態で）。
+    /// そのため、<see cref="SimpleDirectedGraph.VertexCount"/> は減少しません。
     /// </summary>
     /// <param name="vertex">削除する頂点のID。</param>
-    /// <returns>頂点が見つかり削除された場合はtrue、それ以外の場合はfalse。</returns>
+    /// <returns>頂点が見つかり、その辺が削除された場合はtrue、頂点が存在しなかった場合はfalse。</returns>
     public bool RemoveVertex(int vertex)
     {
-        if (!_adjacencyList.TryGetValue(vertex, out var edgesToRemove))
-            return false; // 頂点が存在しない
+        // 基底クラスに RemoveVertex はないため、自前で実装します。
+        // 基底クラスの _adjacencyList が private なので直接キーを削除できません。
+        // 接続されている辺をすべて削除することで対応します。
 
-        int degree = edgesToRemove.Count;
-        var neighbors = edgesToRemove.Keys.ToList();
+        if (!base.ContainsVertex(vertex)) // 基底クラスの ContainsVertex を使用
+            return false;
 
+        // GetNeighbors は基底クラスのものを使用 (接続されている頂点のリストを取得)
+        // ToList() でコピーを作成し、ループ中にコレクションが変更される問題を回避
+        var neighbors = base.GetNeighbors(vertex).ToList();
+
+        // 接続されている辺を両方向から削除
         foreach (var neighbor in neighbors)
         {
-            if (_adjacencyList.TryGetValue(neighbor, out var neighborEdges))
-            {
-                neighborEdges.Remove(vertex);
-            }
+            // このクラスの RemoveEdge を使用 (内部で基底クラスの RemoveEdge を両方向呼び出す)
+            this.RemoveEdge(vertex, neighbor);
         }
 
-        _adjacencyList.Remove(vertex);
-        _edgeCount -= degree;
+        // 基底クラスの _adjacencyList からキー vertex を削除することはできません。
+        // 頂点は残りますが、次数は 0 になります。
+        // VertexCount は基底クラスで管理されており、この操作では減りません。
 
         return true;
     }
@@ -229,84 +198,20 @@ public class SimpleUndirectedGraph
     /// </summary>
     /// <param name="vertexA">最初の頂点のID。</param>
     /// <param name="vertexB">2番目の頂点のID。</param>
-    /// <returns>辺が見つかり両方の隣接リストから削除された場合はtrue、それ以外の場合はfalse。</returns>
-    public bool RemoveEdge(int vertexA, int vertexB)
+    /// <returns>辺が見つかり両方向から削除された場合はtrue、それ以外の場合はfalse。</returns>
+    public new bool RemoveEdge(int vertexA, int vertexB) // 基底クラスにも同名のメソッドがあるため new で隠蔽
     {
-        if (vertexA == vertexB) return false;
+        if (vertexA == vertexB) return false; // 自己ループ削除の試みは常に false
 
-        bool removedA = false;
-        bool removedB = false;
+        // 基底クラスの RemoveEdge を両方向で呼び出します。
+        // RemoveEdge は辺が存在すれば削除し true を、存在しなければ false を返します。
+        bool removedA = base.RemoveEdge(vertexA, vertexB);
+        bool removedB = base.RemoveEdge(vertexB, vertexA);
 
-        if (_adjacencyList.TryGetValue(vertexA, out var edgesA))
-        {
-            removedA = edgesA.Remove(vertexB);
-        }
-        if (_adjacencyList.TryGetValue(vertexB, out var edgesB))
-        {
-            removedB = edgesB.Remove(vertexA);
-        }
-
-        if (removedA && removedB)
-        {
-            _edgeCount--;
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// 頂点がグラフに存在するかどうかを確認します。
-    /// </summary>
-    /// <param name="vertex">確認する頂点のID。</param>
-    /// <returns>頂点が存在する場合はtrue、それ以外の場合はfalse。</returns>
-    public bool ContainsVertex(int vertex)
-    {
-        return _adjacencyList.ContainsKey(vertex);
-    }
-
-    /// <summary>
-    /// 2つの頂点間に辺が存在するかどうかを確認します。
-    /// </summary>
-    /// <param name="vertexA">最初の頂点のID。</param>
-    /// <param name="vertexB">2番目の頂点のID。</param>
-    /// <returns>頂点間に辺が存在する場合はtrue、それ以外の場合はfalse。</returns>
-    public bool ContainsEdge(int vertexA, int vertexB)
-    {
-        if (vertexA == vertexB) return false;
-        return _adjacencyList.TryGetValue(vertexA, out var edgesA) && edgesA.ContainsKey(vertexB);
-    }
-
-    /// <summary>
-    /// 指定された頂点に隣接するすべての頂点のID（その隣接頂点）を取得します。
-    /// </summary>
-    /// <param name="vertex">隣接頂点を取得する頂点のID。</param>
-    /// <returns>隣接頂点のIDを含む読み取り専用コレクション。頂点が存在しないか隣接頂点がない場合は空のコレクションを返します。</returns>
-    public IReadOnlyCollection<int> GetNeighbors(int vertex)
-    {
-        if (_adjacencyList.TryGetValue(vertex, out var neighbors))
-        {
-            return neighbors.Keys;
-        }
-        return Array.Empty<int>();
-    }
-
-    /// <summary>
-    /// 2つの指定された頂点間の辺の重みを取得します。
-    /// </summary>
-    /// <param name="vertexA">最初の頂点のID。</param>
-    /// <param name="vertexB">2番目の頂点のID。</param>
-    /// <returns>辺の重み。</returns>
-    /// <exception cref="KeyNotFoundException">いずれかの頂点が存在しないか、それらの間の辺が存在しない場合にスローされます。</exception>
-    public long GetEdgeWeight(int vertexA, int vertexB)
-    {
-        if (!_adjacencyList.TryGetValue(vertexA, out var edgesA))
-            throw new KeyNotFoundException($"Vertex {vertexA} does not exist in the graph.");
-
-        if (!edgesA.TryGetValue(vertexB, out var weight))
-            throw new KeyNotFoundException($"Edge between vertex {vertexA} and vertex {vertexB} does not exist.");
-
-        return weight;
+        // 無向グラフの辺が存在した場合、両方の呼び出しが true を返すはずです。
+        // EdgeCount は基底クラスで管理され、RemoveEdge が成功するとデクリメントされます。
+        // このクラスの EdgeCount プロパティは基底クラスの EdgeCount / 2 を返します。
+        return removedA && removedB; // 両方成功した場合のみ true
     }
 
     /// <summary>
@@ -316,14 +221,10 @@ public class SimpleUndirectedGraph
     /// <returns>頂点の次数。頂点が存在しない場合は0。</returns>
     public int GetDegree(int vertex)
     {
-        if (_adjacencyList.TryGetValue(vertex, out var neighbors))
-        {
-            return neighbors.Count;
-        }
-        return 0;
+        // 無向グラフの次数は、基底クラスの出次数と同じです。
+        // (辺を追加/削除する際に両方向で操作しているため、入次数とも同じはずです)
+        return base.GetOutDegree(vertex);
     }
-
-
     /// <summary>
     /// グラフ内の葉（次数0または1の頂点）であるすべての頂点を取得します。
     /// 孤立頂点（次数0）も葉と見なされます。
@@ -332,11 +233,13 @@ public class SimpleUndirectedGraph
     public HashSet<int> GetLeaves()
     {
         var leaves = new HashSet<int>();
-        foreach (var kvp in _adjacencyList)
+        // GetVertices は基底クラスのものを使用
+        foreach (var vertex in base.GetVertices())
         {
-            if (kvp.Value.Count <= 1)
+            // このクラスの GetDegree を使用
+            if (this.GetDegree(vertex) <= 1)
             {
-                leaves.Add(kvp.Key);
+                leaves.Add(vertex);
             }
         }
         return leaves;
@@ -345,74 +248,52 @@ public class SimpleUndirectedGraph
     /// <summary>
     /// 幅優先探索（BFS）を使用してグラフにサイクルが含まれているかどうかを確認します。
     /// 各コンポーネントをチェックすることで非連結グラフを処理します。
+    /// これは無向グラフ用のサイクル検出アルゴリズムです。
     /// </summary>
     /// <returns>サイクルが検出された場合はtrue、それ以外の場合はfalse。</returns>
-    public bool ContainsCycle()
+    public new bool ContainsCycle() // 基底クラスの有向グラフ用サイクル検出とは異なるため new で隠蔽
     {
         var globallyVisited = new HashSet<int>();
-        var parentMap = new Dictionary<int, int>();
+        var parentMap = new Dictionary<int, int>(); // BFSでの親を記録
 
-        foreach (var startVertex in _adjacencyList.Keys)
+        // GetVertices は基底クラスのものを使用
+        foreach (var startVertex in base.GetVertices())
         {
             if (globallyVisited.Contains(startVertex))
-                continue;
+                continue; // この連結成分は既に探索済み
 
             var queue = new Queue<int>();
-            var currentComponentVisited = new HashSet<int>();
+            // parentMap を使って訪問済みかを判断するため、currentComponentVisited は不要
 
             queue.Enqueue(startVertex);
-            currentComponentVisited.Add(startVertex);
             globallyVisited.Add(startVertex);
-            parentMap[startVertex] = -1; // Use -1 or another value not used as a vertex ID
+            parentMap[startVertex] = -1; // 開始ノードの親は存在しない (-1 とする)
 
             while (queue.Count > 0)
             {
                 var currentNode = queue.Dequeue();
 
-                if (!_adjacencyList.TryGetValue(currentNode, out var neighbors)) continue;
-
-                foreach (var neighborNode in neighbors.Keys)
+                // GetNeighbors は基底クラスのものを使用
+                foreach (var neighborNode in base.GetNeighbors(currentNode))
                 {
+                    // BFSで来た道を直接戻るのはサイクルではないので無視
                     if (parentMap.TryGetValue(currentNode, out int parent) && neighborNode == parent)
                         continue;
 
-                    if (currentComponentVisited.Contains(neighborNode))
+                    // 既に訪問済み(globallyVisited)で、かつ親ノードでない場合 -> サイクル検出
+                    // (無向グラフでは、訪問済みの非親ノードへの辺は必ず後退辺となりサイクルを形成する)
+                    if (globallyVisited.Contains(neighborNode))
                     {
                         return true; // Cycle detected
                     }
 
-                    if (!globallyVisited.Contains(neighborNode))
-                    {
-                        globallyVisited.Add(neighborNode);
-                        currentComponentVisited.Add(neighborNode);
-                        parentMap[neighborNode] = currentNode;
-                        queue.Enqueue(neighborNode);
-                    }
+                    // 未訪問の隣接ノードを訪問
+                    globallyVisited.Add(neighborNode);
+                    parentMap[neighborNode] = currentNode; // 親を記録
+                    queue.Enqueue(neighborNode);
                 }
             }
         }
-        return false; // No cycle found
-    }
-
-    /// <summary>
-    /// グラフ内に現在存在するすべての頂点IDを取得します。
-    /// </summary>
-    /// <returns>すべての頂点IDを含む読み取り専用コレクション。</returns>
-    public IReadOnlyCollection<int> GetVertices()
-    {
-        return _adjacencyList.Keys;
-    }
-
-
-    // === プライベートヘルパーメソッド ===
-
-    /// <summary>
-    /// 頂点がまだ存在しない場合にグラフに追加します。
-    /// 内部ヘルパーメソッド。頂点IDが呼び出し側によって非負として検証されていることを前提とします。
-    /// </summary>
-    /// <param name="vertex">追加する頂点のID。</param>
-    private void AddVertexIfNotExists(int vertex)
-    {
-        _adjacencyList.TryAdd(vertex, new Dictionary<int, long>());
+        return false; // 全ての連結成分でサイクルが見つからなかった
     }
 }
