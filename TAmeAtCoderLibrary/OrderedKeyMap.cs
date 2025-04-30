@@ -107,7 +107,13 @@ public class OrderedKeyMap<TKey, TValue> where TKey : IComparable<TKey>
     {
         bool avlRemoved = _avl.Remove(key);
         bool dicRemoved = _dic.Remove(key);
-        // Both should ideally return the same result if key exists/doesn't exist
+
+        if (avlRemoved != dicRemoved)
+        {
+            // 不整合AVL木と辞書が完全に同期していない場合、例外をスローします
+            throw new InvalidOperationException("AVL木と辞書が同期していません。");
+        }
+
         return avlRemoved && dicRemoved;
     }
 
