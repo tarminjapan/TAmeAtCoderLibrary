@@ -169,10 +169,6 @@ public class AvlTree<T> where T : IComparable<T>
 
             throw new ArgumentOutOfRangeException(nameof(index), $"指定されたインデックス {index} は範囲外です。有効な範囲は 0 ~ {Count - 1} です。");
         }
-        set
-        {
-            throw new InvalidOperationException("インデックスによる設定操作はサポートされていません。");
-        }
     }
 
     /// <summary>
@@ -206,27 +202,27 @@ public class AvlTree<T> where T : IComparable<T>
         /// <summary>
         /// 親ノードを取得または設定します。
         /// </summary>
-        public Node Parent { get; private set; }
+        public Node Parent { get; private set; } // private set に変更
 
         /// <summary>
         /// 左の子ノードを取得または設定します。
         /// </summary>
-        public Node Left { get; private set; }
+        public Node Left { get; private set; } // private set に変更
 
         /// <summary>
         /// 右の子ノードを取得または設定します。
         /// </summary>
-        public Node Right { get; private set; }
+        public Node Right { get; private set; } // private set に変更
 
         /// <summary>
         /// このノードの高さを取得または設定します。
         /// </summary>
-        int Height { get; set; }
+        int Height { get; set; } // Nodeクラス内でのみsetされるため、private set にはしない (Rebalanceで更新される)
 
         /// <summary>
         /// このノードをルートとする部分木のノード数を取得します。
         /// </summary>
-        public int Count { get; private set; }
+        public int Count { get; private set; } // private set に変更
 
         /// <summary>
         /// このノードまたはその子孫に新しい要素を追加します。同じ要素が既に存在する場合は、何も行いません。
@@ -449,7 +445,7 @@ public class AvlTree<T> where T : IComparable<T>
         /// AVL木のバランスを再構築します。
         /// </summary>
         /// <param name="recursive">親ノードに対しても再帰的に再構築を行うかどうか。</param>
-        void Rebalance(bool recursive)
+        private void Rebalance(bool recursive) // private に変更
         {
             Count = 1;
 
@@ -514,7 +510,7 @@ public class AvlTree<T> where T : IComparable<T>
         /// <summary>
         /// ノードを右回転させます。
         /// </summary>
-        void RotateRight()
+        private void RotateRight() // private に変更
         {
             var root = Parent;
             var parent = root?.Parent;
@@ -559,7 +555,7 @@ public class AvlTree<T> where T : IComparable<T>
         /// <summary>
         /// ノードを左回転させます。
         /// </summary>
-        void RotateLeft()
+        private void RotateLeft() // private に変更
         {
             var root = Parent;
             var parent = root?.Parent;
@@ -632,10 +628,6 @@ public class AvlTree<T> where T : IComparable<T>
                     }
                 }
                 throw new ArgumentOutOfRangeException(nameof(index), "指定されたインデックスは範囲外です。");
-            }
-            set
-            {
-                throw new InvalidOperationException("インデックスによる設定操作はサポートされていません。");
             }
         }
 
