@@ -4,7 +4,7 @@ using System.Numerics;
 namespace TAmeAtCoderLibrary.Utilities;
 
 /// <summary>
-/// 競技プログラミングなどで利用可能な共通ユーティリティ関数を提供します。
+/// 共通のユーティリティメソッドを提供します。
 /// </summary>
 public static class Common
 {

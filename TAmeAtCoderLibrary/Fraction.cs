@@ -52,41 +52,6 @@ public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
     }
 
     /// <summary>
-    /// 2つの整数の最大公約数（GCD）を計算いたします。
-    /// </summary>
-    /// <param name="n1">1つ目の整数値。</param>
-    /// <param name="n2">2つ目の整数値。</param>
-    /// <returns>n1とn2の最大公約数を返します。</returns>
-    public static long Gcd(long n1, long n2)
-    {
-        n1 = Math.Abs(n1);
-        n2 = Math.Abs(n2);
-
-        while (n2 != 0)
-        {
-            var temp = n2;
-            n2 = n1 % n2;
-            n1 = temp;
-        }
-
-        return n1;
-    }
-
-    /// <summary>
-    /// 2つの整数の最小公倍数（LCM）を計算いたします。
-    /// </summary>
-    /// <param name="n1">1つ目の整数値。</param>
-    /// <param name="n2">2つ目の整数値。</param>
-    /// <returns>n1とn2の最小公倍数を返します。</returns>
-    /// <remarks>オーバーフローを回避するため、計算順序を工夫しています。</remarks>
-    public static long Lcm(long n1, long n2)
-    {
-        if (n1 == 0 || n2 == 0) return 0;
-
-        return Math.Abs(n1) / Gcd(n1, n2) * Math.Abs(n2);
-    }
-
-    /// <summary>
     /// 分数を正規化（簡素化）いたします。符号の調整や既約分数への変換を行います。
     /// </summary>
     void Normal()
@@ -97,7 +62,7 @@ public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
             Denominator *= -1;
         }
 
-        var gcd = Gcd(Math.Abs(Numerator), Denominator);
+        var gcd = MathEx.DivAndMulti.Gcd(Math.Abs(Numerator), Denominator);
 
         Numerator /= gcd;
         Denominator /= gcd;
@@ -149,7 +114,7 @@ public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
     /// </returns>
     public static long Compare(Fraction a, Fraction b)
     {
-        var lcm = Lcm(a.Denominator, b.Denominator);
+        var lcm = MathEx.DivAndMulti.Lcm(a.Denominator, b.Denominator);
 
         return lcm / a.Denominator * a.Numerator - lcm / b.Denominator * b.Numerator;
     }
@@ -183,7 +148,7 @@ public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
     /// <returns>加算結果を正規化した分数オブジェクト。</returns>
     public static Fraction operator +(Fraction a, Fraction b)
     {
-        var lcm = Lcm(a.Denominator, b.Denominator);
+        var lcm = MathEx.DivAndMulti.Lcm(a.Denominator, b.Denominator);
         var numer = a.Numerator * (lcm / a.Denominator) + b.Numerator * (lcm / b.Denominator);
 
         return new Fraction(numer, lcm);
@@ -197,7 +162,7 @@ public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
     /// <returns>減算結果を正規化した分数オブジェクト。</returns>
     public static Fraction operator -(Fraction a, Fraction b)
     {
-        var lcm = Lcm(a.Denominator, b.Denominator);
+        var lcm = MathEx.DivAndMulti.Lcm(a.Denominator, b.Denominator);
         var numer = a.Numerator * (lcm / a.Denominator) - b.Numerator * (lcm / b.Denominator);
 
         return new Fraction(numer, lcm);
@@ -211,11 +176,11 @@ public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
     /// <returns>乗算結果を正規化した分数オブジェクト。</returns>
     public static Fraction operator *(Fraction a, Fraction b)
     {
-        var gcd = Gcd(a.Numerator, b.Denominator);
+        var gcd = MathEx.DivAndMulti.Gcd(a.Numerator, b.Denominator);
         var numer = a.Numerator / gcd;
         var denom = b.Denominator / gcd;
 
-        gcd = Gcd(b.Numerator, a.Denominator);
+        gcd = MathEx.DivAndMulti.Gcd(b.Numerator, a.Denominator);
         numer *= b.Numerator / gcd;
         denom *= a.Denominator / gcd;
 
@@ -234,11 +199,11 @@ public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
         if (b.Numerator == 0)
             throw new DivideByZeroException("0で除算することはできません。");
 
-        var gcd = Gcd(a.Numerator, b.Numerator);
+        var gcd = MathEx.DivAndMulti.Gcd(a.Numerator, b.Numerator);
         var numer = a.Numerator / gcd;
         var denom = b.Numerator / gcd;
 
-        gcd = Gcd(b.Denominator, a.Denominator);
+        gcd = MathEx.DivAndMulti.Gcd(b.Denominator, a.Denominator);
         numer *= b.Denominator / gcd;
         denom *= a.Denominator / gcd;
 
