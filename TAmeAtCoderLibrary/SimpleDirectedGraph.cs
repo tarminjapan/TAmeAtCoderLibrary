@@ -45,6 +45,32 @@ public class SimpleDirectedGraph
     }
 
     /// <summary>
+    /// 指定した最大ID値までの頂点と辺のリストを持つ単純有向グラフを初期化します。
+    /// 1からmaxVertexId（含む）までのIDを持つ頂点が事前に追加されます。
+    /// 辺は提供されたリストに基づいて追加されます。
+    /// </summary>
+    /// <param name="maxVertexId">事前に追加される頂点の最大ID（含む、1から開始）。非負でなければなりません。</param>
+    /// <param name="edges">辺の配列。各要素は {from, to} または {from, to, weight} の形式です。</param>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxVertexId"/>が負の場合、または<paramref name="edges"/>内に負の頂点IDが含まれる場合。</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="edges"/>がnullの場合。</exception>
+    /// <exception cref="ArgumentException"><paramref name="edges"/>内の配列形式が不正な場合。</exception>
+    public SimpleDirectedGraph(int maxVertexId, int[][] edges)
+    {
+        if (maxVertexId < 0)
+            throw new ArgumentOutOfRangeException(nameof(maxVertexId), "Maximum vertex ID cannot be negative.");
+
+        // 1からmaxVertexIdまでの頂点を事前に追加
+        // 0も有効な頂点IDだが、ここでは1-basedの初期化を想定
+        for (int vertexId = 1; vertexId <= maxVertexId; vertexId++)
+        {
+            AddVertex(vertexId); // 既に存在する場合は何もしない
+        }
+
+        // 提供された辺を追加
+        AddEdges(edges);
+    }
+
+    /// <summary>
     /// グラフに頂点を追加します。既に存在する場合は何もしません。
     /// </summary>
     /// <param name="vertex">追加する頂点のID。非負である必要があります。</param>
