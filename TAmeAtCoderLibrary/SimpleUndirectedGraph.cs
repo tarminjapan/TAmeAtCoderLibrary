@@ -202,6 +202,25 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
         // 無向グラフの次数は、基底クラスの出次数と同じ (辺の追加/削除を両方向で行うため)。
         return base.GetOutDegree(vertex);
     }
+
+    /// <summary>
+    /// このメソッドは無向グラフではサポートされていません。代わりに <see cref="GetDegree"/> を使用してください。
+    /// </summary>
+    [System.ObsoleteAttribute("Use GetDegree for undirected graphs. GetInDegree is not meaningful here.", true)]
+    public new int GetInDegree(int vertex)
+    {
+        throw new System.NotSupportedException("Use GetDegree for undirected graphs. GetInDegree is not meaningful for an undirected graph in this context.");
+    }
+
+    /// <summary>
+    /// このメソッドは無向グラフではサポートされていません。代わりに <see cref="GetDegree"/> を使用してください。
+    /// </summary>
+    [System.ObsoleteAttribute("Use GetDegree for undirected graphs. GetOutDegree is not meaningful here.", true)]
+    public new int GetOutDegree(int vertex)
+    {
+        throw new System.NotSupportedException("Use GetDegree for undirected graphs. GetOutDegree is not meaningful for an undirected graph in this context.");
+    }
+
     /// <summary>
     /// グラフ内の葉（次数0または1の頂点）であるすべての頂点を取得します。
     /// 孤立頂点（次数0）も葉と見なされます。
