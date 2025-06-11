@@ -431,7 +431,7 @@ public class SimpleDirectedGraph
                 // 訪問中の頂点に戻ってきた -> 閉路発見
                 cyclePath = new List<int>();
                 // スタックから閉路部分を抽出
-                foreach (int node in recursionStack.Reverse()) // StackはLIFOなのでReverseが必要
+                while (recursionStack.TryPop(out var node))
                 {
                     cyclePath.Add(node);
                     if (node == neighbor) break; // 閉路の開始点まで追加したら終了
