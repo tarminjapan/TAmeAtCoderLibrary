@@ -29,18 +29,12 @@ public class BinaryIndexedTree
     /// </summary>
     /// <param name="count">要素の個数。0からcount-1までのインデックスをサポートします。</param>
     /// <param name="divisor">剰余演算に使用する除数。0より大きな値である必要があります。</param>
-    public BinaryIndexedTree(int count, long divisor)
+    public BinaryIndexedTree(int count, long divisor) : this(count)
     {
-        if (count <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(count), "Count must be positive.");
-        }
         if (divisor <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(divisor), "Divisor must be greater than zero.");
         }
-        _size = count;
-        InitializeLayers(_size);
         _Modulus = divisor;
     }
 
@@ -88,8 +82,7 @@ public class BinaryIndexedTree
             var nextLevelKey = (int)MathEx.Ceiling(key, 2);
             if (key % 2 == 1)
             {
-                _Layers[i][nextLevelKey - 1] += value;
-                _Layers[i][nextLevelKey - 1] = ApplyModulo(_Layers[i][nextLevelKey - 1]);
+                _Layers[i][nextLevelKey - 1] = ApplyModulo(_Layers[i][nextLevelKey - 1] + value);
             }
             key = nextLevelKey;
         }
@@ -118,8 +111,7 @@ public class BinaryIndexedTree
         {
             if (key % 2 == 1)
             {
-                sum += _Layers[i][(int)MathEx.Ceiling(key, 2) - 1];
-                sum = ApplyModulo(sum);
+                sum = ApplyModulo(sum + _Layers[i][(int)MathEx.Ceiling(key, 2) - 1]);
             }
             if (key == 1) break;
             key /= 2;
@@ -139,9 +131,13 @@ public class BinaryIndexedTree
         {
             throw new ArgumentException("from must be less than or equal to to.");
         }
-        if (from < 0 || to >= _size)
+        if (from < 0)
         {
-            throw new ArgumentOutOfRangeException("from or to is out of the valid range.");
+            throw new ArgumentOutOfRangeException(nameof(from), "from is out of the valid range.");
+        }
+        if (to >= _size)
+        {
+            throw new ArgumentOutOfRangeException(nameof(to), "to is out of the valid range.");
         }
         return ApplyModulo(GetSum(to) - GetSum(from - 1));
     }
