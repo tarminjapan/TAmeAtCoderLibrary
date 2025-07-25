@@ -135,10 +135,6 @@ public class BinaryIndexedTree
         {
             throw new ArgumentOutOfRangeException(nameof(from), "from is out of the valid range.");
         }
-        if (to >= _size)
-        {
-            throw new ArgumentOutOfRangeException(nameof(to), "to is out of the valid range.");
-        }
         return ApplyModulo(GetSum(to) - GetSum(from - 1));
     }
 
@@ -149,7 +145,7 @@ public class BinaryIndexedTree
     /// <returns>指定されたキーの値。</returns>
     public long GetValue(int key)
     {
-        if (key < 0 || key >= _size)
+        if (key < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(key), "Key is out of the valid range.");
         }
