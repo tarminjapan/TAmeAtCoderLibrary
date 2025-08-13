@@ -47,7 +47,11 @@ public class BinaryIndexedTree
         while (index <= _size)
         {
             _tree[index] += value;
-            if (_mod.HasValue) _tree[index] %= _mod.Value;
+            if (_mod.HasValue)
+            {
+                _tree[index] %= _mod.Value;
+                if (_tree[index] < 0) _tree[index] += _mod.Value;
+            }
             index += index & -index;
         }
     }
@@ -65,12 +69,12 @@ public class BinaryIndexedTree
         while (index > 0)
         {
             sum += _tree[index];
-            if (_mod.HasValue) sum %= _mod.Value;
+            if (_mod.HasValue)
+            {
+                sum %= _mod.Value;
+                if (sum < 0) sum += _mod.Value;
+            }
             index -= index & -index;
-        }
-        if (_mod.HasValue)
-        {
-            if (sum < 0) sum += _mod.Value;
         }
         return sum;
     }
@@ -84,7 +88,8 @@ public class BinaryIndexedTree
     public long Sum(int from, int to)
     {
         if (from > to) throw new ArgumentException("'from' must be less than or equal to 'to'.");
-        if (from < 0 || to >= _size) throw new ArgumentOutOfRangeException("index is out of range.");
+        if (from < 0) throw new ArgumentOutOfRangeException(nameof(from));
+        if (to >= _size) throw new ArgumentOutOfRangeException(nameof(to));
 
         long sumTo = Sum(to);
         long sumFrom = (from == 0) ? 0 : Sum(from - 1);
