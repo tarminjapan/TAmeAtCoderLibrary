@@ -237,14 +237,20 @@ public static class Numeric
     // --- 数値操作 ---
 
     /// <summary>
-    /// long型の値を、数値計算のみで効率的に反転させます。
+    /// long型の非負整数を、数値計算のみで効率的に反転させます。
     /// 計算の過程でオーバーフローが発生した場合はOverflowExceptionをスローします。
     /// </summary>
-    /// <param name="n">反転させたいlong型の数値</param>
+    /// <param name="n">反転させたいlong型の非負整数</param>
     /// <returns>各桁が反転されたlong型の数値</returns>
+    /// <exception cref="ArgumentOutOfRangeException">nが負数の場合にスローされます。</exception>
     /// <exception cref="OverflowException">反転処理中に値がlong型の範囲を超えた場合にスローされます。</exception>
     public static long Reverse(long n)
     {
+        if (n < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(n), "Input must be a non-negative number.");
+        }
+
         long reversed = 0;
 
         while (n != 0)
