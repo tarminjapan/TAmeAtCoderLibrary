@@ -1,3 +1,4 @@
+#nullable enable
 namespace TAmeAtCoderLibrary;
 
 /// <summary>
@@ -26,17 +27,17 @@ public class CartesianTree<TKey, TValue> where TKey : IComparable<TKey> where TV
         /// <summary>
         /// ノードの親を取得または設定します。
         /// </summary>
-        public Node Parent { get; internal set; }
+        public Node? Parent { get; internal set; }
 
         /// <summary>
         /// ノードの左の子を取得または設定します。
         /// </summary>
-        public Node Left { get; internal set; }
+        public Node? Left { get; internal set; }
 
         /// <summary>
         /// ノードの右の子を取得または設定します。
         /// </summary>
-        public Node Right { get; internal set; }
+        public Node? Right { get; internal set; }
 
         /// <summary>
         /// <see cref="Node"/> クラスの新しいインスタンスを初期化します。
@@ -53,17 +54,18 @@ public class CartesianTree<TKey, TValue> where TKey : IComparable<TKey> where TV
     /// <summary>
     /// デカルトの木の根を取得します。
     /// </summary>
-    public Node Root { get; private set; }
+    public Node? Root { get; private set; }
 
     /// <summary>
     /// キーと値のペアのコレクションから木を構築することにより、<see cref="CartesianTree{TKey, TValue}"/> クラスの新しいインスタンスを初期化します。
-    /// 構築は、ソートのために O(n log n) で行われますが、入力がキーで事前にソートされている場合は O(n) です。
+    /// 構築は O(n log n) ですが、入力がキーでソート済みの場合は O(n) です。
     /// </summary>
     /// <param name="items">木を構築するためのキーと値のペアのコレクション。</param>
-    public CartesianTree(IEnumerable<KeyValuePair<TKey, TValue>> items)
+    /// <param name="isAlreadySorted">入力シーケンスがキーで既にソートされているかどうかを示す値。</param>
+    public CartesianTree(IEnumerable<KeyValuePair<TKey, TValue>> items, bool isAlreadySorted = false)
     {
         // 木を効率的に構築するために、項目をキーでソートします。
-        var sortedItems = items.OrderBy(kvp => kvp.Key).ToArray();
+        var sortedItems = isAlreadySorted ? items.ToArray() : items.OrderBy(kvp => kvp.Key).ToArray();
         if (sortedItems.Length == 0)
         {
             return;
