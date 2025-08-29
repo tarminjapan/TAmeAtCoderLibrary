@@ -68,99 +68,87 @@ public static class Common
     }
     #endregion
 
-    #region Combinations and Permutations (Yield Return for Memory Efficiency)
+    #region Combinations and Permutations
 
     /// <summary>
-    /// 指定された範囲の数値から指定された個数を選択する組み合わせを列挙します (遅延評価)。
+    /// 指定された範囲の数値から指定された個数を選択する組み合わせを列挙します。
     /// </summary>
     /// <param name="n">選択対象の最大値 (1 から n)。</param>
     /// <param name="k">選択する個数。</param>
-    /// <returns>組み合わせのシーケンス。各組み合わせは int の IEnumerable。</returns>
+    /// <returns>組み合わせのリスト。各組み合わせは int の List。</returns>
     /// <exception cref="ArgumentOutOfRangeException">n, k が負、または k > n。</exception>
-    public static IEnumerable<IEnumerable<int>> GenerateCombinations(int n, int k)
+    public static List<List<int>> GenerateCombinations(int n, int k)
     {
         if (n < 0) throw new ArgumentOutOfRangeException(nameof(n), "n must be non-negative.");
         if (k < 0) throw new ArgumentOutOfRangeException(nameof(k), "k must be non-negative.");
         if (k > n) throw new ArgumentOutOfRangeException(nameof(k), "k cannot be greater than n.");
 
+        var allCombinations = new List<List<int>>();
         if (k == 0)
         {
-            yield return Enumerable.Empty<int>();
-            // yield break; // k=0 の場合は yield return の後に暗黙的に終了するので省略可
+            allCombinations.Add(new List<int>());
+            return allCombinations;
         }
-        else // k > 0 の場合
-        {
-            // CS1622 修正: GenerateCombinationsRecursive の結果を foreach で yield return する
-            foreach (var combination in GenerateCombinationsRecursive(1, n, k, 0, new int[k]))
-            {
-                yield return combination;
-            }
-        }
+
+        GenerateCombinationsRecursive(1, n, k, 0, new int[k], allCombinations);
+        return allCombinations;
     }
 
-    private static IEnumerable<IEnumerable<int>> GenerateCombinationsRecursive(int start, int n, int k, int index, int[] currentCombination)
+    private static void GenerateCombinationsRecursive(int start, int n, int k, int index, int[] currentCombination, List<List<int>> allCombinations)
     {
         if (index == k)
         {
-            yield return (int[])currentCombination.Clone();
+            allCombinations.Add(new List<int>(currentCombination));
+            return;
         }
-        else
+
+        for (int i = start; i <= n - (k - index - 1); i++)
         {
-            for (int i = start; i <= n - (k - index - 1); i++)
-            {
-                currentCombination[index] = i;
-                foreach (var combination in GenerateCombinationsRecursive(i + 1, n, k, index + 1, currentCombination))
-                    yield return combination;
-            }
+            currentCombination[index] = i;
+            GenerateCombinationsRecursive(i + 1, n, k, index + 1, currentCombination, allCombinations);
         }
     }
 
     /// <summary>
-    /// 指定された範囲の数値から指定された個数を選択する順列を列挙します (遅延評価)。
+    /// 指定された範囲の数値から指定された個数を選択する順列を列挙します。
     /// </summary>
     /// <param name="n">選択対象の最大値 (1 から n)。</param>
     /// <param name="k">選択する個数。</param>
-    /// <returns>順列のシーケンス。各順列は int の IEnumerable。</returns>
+    /// <returns>順列のリスト。各順列は int の List。</returns>
     /// <exception cref="ArgumentOutOfRangeException">n, k が負、または k > n。</exception>
-    public static IEnumerable<IEnumerable<int>> GeneratePermutations(int n, int k)
+    public static List<List<int>> GeneratePermutations(int n, int k)
     {
         if (n < 0) throw new ArgumentOutOfRangeException(nameof(n), "n must be non-negative.");
         if (k < 0) throw new ArgumentOutOfRangeException(nameof(k), "k must be non-negative.");
         if (k > n) throw new ArgumentOutOfRangeException(nameof(k), "k cannot be greater than n.");
 
+        var allPermutations = new List<List<int>>();
         if (k == 0)
         {
-            yield return Enumerable.Empty<int>();
-            // yield break; // k=0 の場合は yield return の後に暗黙的に終了するので省略可
+            allPermutations.Add(new List<int>());
+            return allPermutations;
         }
-        else // k > 0 の場合
-        {
-            // CS1622 修正: GeneratePermutationsRecursive の結果を foreach で yield return する
-            foreach (var permutation in GeneratePermutationsRecursive(n, k, 0, new int[k], new bool[n + 1]))
-            {
-                yield return permutation;
-            }
-        }
+
+        GeneratePermutationsRecursive(n, k, 0, new int[k], new bool[n + 1], allPermutations);
+        return allPermutations;
     }
 
-    private static IEnumerable<IEnumerable<int>> GeneratePermutationsRecursive(int n, int k, int index, int[] currentPermutation, bool[] used)
+    private static void GeneratePermutationsRecursive(int n, int k, int index, int[] currentPermutation, bool[] used, List<List<int>> allPermutations)
     {
         if (index == k)
         {
-            yield return (int[])currentPermutation.Clone();
+            allPermutations.Add(new List<int>(currentPermutation));
+            return;
         }
-        else
+
+        for (int i = 1; i <= n; i++)
         {
-            for (int i = 1; i <= n; i++)
+            if (!used[i])
             {
-                if (!used[i])
-                {
-                    used[i] = true;
-                    currentPermutation[index] = i;
-                    foreach (var permutation in GeneratePermutationsRecursive(n, k, index + 1, currentPermutation, used))
-                        yield return permutation;
-                    used[i] = false; // Backtrack
-                }
+                used[i] = true;
+                currentPermutation[index] = i;
+                GeneratePermutationsRecursive(n, k, index + 1, currentPermutation, used, allPermutations);
+                used[i] = false; // Backtrack
             }
         }
     }
