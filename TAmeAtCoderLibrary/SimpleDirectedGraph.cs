@@ -10,7 +10,7 @@ namespace TAmeAtCoderLibrary;
 public class SimpleDirectedGraph
 {
     // 隣接リスト表現: {頂点 -> {隣接頂点 -> 重み}}
-    private readonly Dictionary<int, Dictionary<int, long>> _adjacencyList = new();
+    protected readonly Dictionary<int, Dictionary<int, long>> _adjacencyList = new();
     // 各頂点の入次数を保持する辞書
     private readonly Dictionary<int, int> _inDegrees = new();
 
@@ -325,7 +325,7 @@ public class SimpleDirectedGraph
     /// </summary>
     /// <param name="vertex">入次数を調べる頂点のID。</param>
     /// <returns>頂点の入次数。頂点が存在しない場合は 0。</returns>
-    public int GetInDegree(int vertex)
+    protected int GetInDegree(int vertex)
     {
         return _inDegrees.GetValueOrDefault(vertex, 0);
     }
@@ -335,7 +335,7 @@ public class SimpleDirectedGraph
     /// </summary>
     /// <param name="vertex">出次数を調べる頂点のID。</param>
     /// <returns>頂点の出次数。頂点が存在しない場合は 0。</returns>
-    public int GetOutDegree(int vertex)
+    protected int GetOutDegree(int vertex)
     {
         if (_adjacencyList.TryGetValue(vertex, out var neighbors))
         {

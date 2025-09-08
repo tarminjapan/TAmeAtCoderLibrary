@@ -146,16 +146,11 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
 
     /// <summary>
     /// 頂点とそれに接続するすべての辺をグラフから削除します。
-    /// 注意: この操作は頂点に接続する辺を削除しますが、基底クラスの制約により、
-    /// 頂点自体（キー）は隣接リストに残る可能性があります（辺を持たない状態で）。
-    /// そのため、<see cref="SimpleDirectedGraph.VertexCount"/> は減少しません。
     /// </summary>
     /// <param name="vertex">削除する頂点のID。</param>
-    /// <returns>頂点が見つかり、その辺が削除された場合はtrue、頂点が存在しなかった場合はfalse。</returns>
+    /// <returns>頂点が見つかり、削除された場合はtrue、頂点が存在しなかった場合はfalse。</returns>
     public bool RemoveVertex(int vertex)
     {
-        // 基底クラスの _adjacencyList が private なので直接キーを削除できない。
-        // 接続されている辺をすべて削除することで対応する。
         if (!base.ContainsVertex(vertex))
             return false;
 
@@ -168,8 +163,9 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
             this.RemoveEdge(vertex, neighbor); // 内部で基底クラスの RemoveEdge を両方向呼び出す
         }
 
-        // 頂点キーは基底クラスに残るが、次数は 0 になる。
-        // VertexCount は基底クラス管理のため、この操作では減らない。
+        // 最後に頂点自体を隣接リストから削除
+        _adjacencyList.Remove(vertex);
+
         return true;
     }
 
@@ -201,24 +197,6 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
     {
         // 無向グラフの次数は、基底クラスの出次数と同じ (辺の追加/削除を両方向で行うため)。
         return base.GetOutDegree(vertex);
-    }
-
-    /// <summary>
-    /// このメソッドは無向グラフではサポートされていません。代わりに <see cref="GetDegree"/> を使用してください。
-    /// </summary>
-    [System.ObsoleteAttribute("Use GetDegree for undirected graphs. GetInDegree is not meaningful here.", true)]
-    public new int GetInDegree(int vertex)
-    {
-        throw new System.NotSupportedException("Use GetDegree for undirected graphs. GetInDegree is not meaningful for an undirected graph in this context.");
-    }
-
-    /// <summary>
-    /// このメソッドは無向グラフではサポートされていません。代わりに <see cref="GetDegree"/> を使用してください。
-    /// </summary>
-    [System.ObsoleteAttribute("Use GetDegree for undirected graphs. GetOutDegree is not meaningful here.", true)]
-    public new int GetOutDegree(int vertex)
-    {
-        throw new System.NotSupportedException("Use GetDegree for undirected graphs. GetOutDegree is not meaningful for an undirected graph in this context.");
     }
 
     /// <summary>
