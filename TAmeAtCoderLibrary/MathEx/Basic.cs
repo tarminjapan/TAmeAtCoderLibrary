@@ -485,17 +485,30 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
         /// <summary>
         /// 二つの数を加算し、法（Modulus）による剰余を返します。
         /// </summary>
-        public long Add(long a, long b) => ((a % Modulus) + (b % Modulus) + Modulus) % Modulus;
+        public long Add(long a, long b)
+        {
+            long res = a % Modulus + b % Modulus;
+            return (res % Modulus + Modulus) % Modulus;
+        }
 
         /// <summary>
         /// 二つの数を減算し、法（Modulus）による剰余を返します。
         /// </summary>
-        public long Subtract(long a, long b) => ((a % Modulus) - (b % Modulus) + Modulus) % Modulus;
+        public long Subtract(long a, long b)
+        {
+            long res = a % Modulus - b % Modulus;
+            return (res % Modulus + Modulus) % Modulus;
+        }
 
         /// <summary>
         /// 二つの数を乗算し、法（Modulus）による剰余を返します。
         /// </summary>
-        public long Multiply(long a, long b) => ((a % Modulus) * (b % Modulus) + Modulus) % Modulus;
+        public long Multiply(long a, long b)
+        {
+            long na = (a % Modulus + Modulus) % Modulus;
+            long nb = (b % Modulus + Modulus) % Modulus;
+            return (long)((System.Int128)na * nb % Modulus);
+        }
 
         /// <summary>
         /// 数のべき乗を計算し、法（Modulus）による剰余を返します。
