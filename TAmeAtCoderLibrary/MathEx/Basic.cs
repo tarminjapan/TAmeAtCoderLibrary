@@ -443,26 +443,27 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
     }
 
     /// <summary>
-    /// 特定の法（modulus）におけるモジュラ逆数を効率的に取得するためのクライアントクラスです。
+    /// 特定の法（modulus）におけるモジュラ算術を効率的に行うためのクライアントクラスです。
     /// スレッドセーフです。
     /// </summary>
-    public class ModInverseClient
+    public class ModularArithmetic
     {
-        private readonly ConcurrentDictionary<long, long> _cache;
+        private readonly ConcurrentDictionary<long, long> _inverseCache;
+
         /// <summary>
-        /// モジュラ逆数を計算する際の法（modulus）です。正の整数である必要があります。
+        /// モジュラ算術の法（modulus）です。正の整数である必要があります。
         /// </summary>
         public long Modulus { get; }
 
         /// <summary>
-        /// ModInverseClient の新しいインスタンスを初期化します。
+        /// ModularArithmetic の新しいインスタンスを初期化します。
         /// </summary>
-        /// <param name="modulus">モジュラ逆数を計算する際の法（正の整数）。</param>
+        /// <param name="modulus">モジュラ算術の法（正の整数）。</param>
         /// <exception cref="ArgumentOutOfRangeException">modulus が 1 未満の場合。</exception>
-        public ModInverseClient(long modulus)
+        public ModularArithmetic(long modulus)
         {
-            if (modulus <= 0) throw new ArgumentOutOfRangeException(nameof(modulus), "除数は正である必要があります。");
-            _cache = new ConcurrentDictionary<long, long>();
+            if (modulus <= 0) throw new ArgumentOutOfRangeException(nameof(modulus), "法は正である必要があります。");
+            _inverseCache = new ConcurrentDictionary<long, long>();
             Modulus = modulus;
         }
 
@@ -471,16 +472,61 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
         /// </summary>
         /// <param name="number">モジュラ逆数を求めたい数値。</param>
         /// <returns>number の Modulus におけるモジュラ逆数（0 以上 Modulus 未満）。存在しない場合は -1。</returns>
-        public long GetModInverse(long number)
+        public long Inverse(long number)
         {
             if (Modulus == 1) return 0;
 
             long normalizedNum = (number % Modulus + Modulus) % Modulus;
-            if (normalizedNum == 0) return -1; // 除数が 1 より大きい場合、0 の逆数は存在しない
+            if (normalizedNum == 0) return -1; // 法が 1 より大きい場合、0 の逆数は存在しない
 
-            // GetOrAdd を使用してスレッドセーフなキャッシュ
-            // ファクトリ関数（ラムダ）はキーが見つからない場合にのみ呼び出されます。
-            return _cache.GetOrAdd(normalizedNum, num => MathEx.ModInverse(num, Modulus));
+            return _inverseCache.GetOrAdd(normalizedNum, num => MathEx.ModInverse(num, Modulus));
+        }
+
+        /// <summary>
+        /// 二つの数を加算し、法（Modulus）による剰余を返します。
+        /// </summary>
+        public long Add(long a, long b)
+        {
+            long res = a % Modulus + b % Modulus;
+            return (res % Modulus + Modulus) % Modulus;
+        }
+
+        /// <summary>
+        /// 二つの数を減算し、法（Modulus）による剰余を返します。
+        /// </summary>
+        public long Subtract(long a, long b)
+        {
+            long res = a % Modulus - b % Modulus;
+            return (res % Modulus + Modulus) % Modulus;
+        }
+
+        /// <summary>
+        /// 二つの数を乗算し、法（Modulus）による剰余を返します。
+        /// </summary>
+        public long Multiply(long a, long b)
+        {
+            long na = (a % Modulus + Modulus) % Modulus;
+            long nb = (b % Modulus + Modulus) % Modulus;
+            return (long)((System.Int128)na * nb % Modulus);
+        }
+
+        /// <summary>
+        /// 数のべき乗を計算し、法（Modulus）による剰余を返します。
+        /// </summary>
+        public long Power(long baseValue, long exponent) => MathEx.ModPow(baseValue, exponent, Modulus);
+
+        /// <summary>
+        /// 除算（乗法逆元を使用）を行い、法（Modulus）による剰余を返します。
+        /// </summary>
+        /// <exception cref="InvalidOperationException">逆元が存在しない場合。</exception>
+        public long Divide(long dividend, long divisor)
+        {
+            long inverseDivisor = Inverse(divisor);
+            if (inverseDivisor == -1)
+            {
+                throw new InvalidOperationException($"法 {Modulus} において {divisor} の逆元は存在しません。");
+            }
+            return Multiply(dividend, inverseDivisor);
         }
     }
 
