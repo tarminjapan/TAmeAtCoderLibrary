@@ -12,7 +12,7 @@ public class SimpleDirectedGraph
     // 隣接リスト表現: {頂点 -> {隣接頂点 -> 重み}}
     protected readonly Dictionary<int, Dictionary<int, long>> _adjacencyList = new();
     // 各頂点の入次数を保持する辞書
-    private readonly Dictionary<int, int> _inDegrees = new();
+    protected readonly Dictionary<int, int> _inDegrees = new();
 
     /// <summary>
     /// グラフが持つ頂点の数を取得します。

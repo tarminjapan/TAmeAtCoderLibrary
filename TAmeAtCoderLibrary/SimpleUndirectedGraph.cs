@@ -165,6 +165,7 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
 
         // 最後に頂点自体を隣接リストから削除
         _adjacencyList.Remove(vertex);
+        _inDegrees.Remove(vertex);
 
         return true;
     }
