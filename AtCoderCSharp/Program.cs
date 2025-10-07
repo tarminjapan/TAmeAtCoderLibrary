@@ -1,4 +1,5 @@
-﻿using TAmeAtCoderLibrary;
+﻿using System.Diagnostics.CodeAnalysis;
+using TAmeAtCoderLibrary;
 using TAmeAtCoderLibrary.Utilities;
 
 internal class Program
@@ -14,40 +15,34 @@ internal class Program
 
     public class Solve
     {
+        [SuppressMessage("Performance", "CA1822")]
         public void Run()
         {
-            var inputs = ReadLine.Ints();
-            int iN = inputs[0], iM = inputs[1], iQ = inputs[2];
-            var iABC = ReadLine.IntMatrix(iM);
-            var iUVW = ReadLine.IntMatrix(iQ);
+            var iN = ReadLine.Int();
+            var iA = ReadLine.Ints();
 
-            var uf = new UnionFindTree<int>();
-            var edges1 = iABC.Select((x, i) => new int[] { x[0], x[1], x[2], 0, i }).ToArray();
-            var edges2 = iUVW.Select((x, i) => new int[] { x[0], x[1], x[2], 1, i }).ToArray();
-            var edges = edges1.Concat(edges2).OrderBy(x => x[2]).ToArray();
-            var res = new bool[iQ];
+            var stack = new Stack<int>();
+            var queue = new Queue<int>();
+            var ans = 0;
 
-            for (int i = 1; i <= iN; i++)
-                uf.Add(i);
+            for (int i = 0; i < iN / 2; i++)
+                stack.Push(iA[i]);
 
-            foreach (var edge in edges)
+            for (int i = 0; i < iN / 2; i++)
+                queue.Enqueue(iA[^(i + 1)]);
+
+            while (0 < stack.Count)
             {
-                int v1 = edge[0], v2 = edge[1], w = edge[2], t = edge[3], i = edge[4];
+                var a = stack.Pop();
 
-                var r1 = uf.FindRoot(v1);
-                var r2 = uf.FindRoot(v2);
-
-                if (r1 == r2)
-                    continue;
-
-                if (t == 1)
-                    res[i] = true;
-                else
-                    uf.Union(r1, r2);
+                if (a * 2 <= queue.Peek())
+                {
+                    queue.Dequeue();
+                    ans++;
+                }
             }
 
-            foreach (var bl in res)
-                Console.WriteLine(bl ? "Yes" : "No");
+            Console.WriteLine(ans);
         }
     }
 }
