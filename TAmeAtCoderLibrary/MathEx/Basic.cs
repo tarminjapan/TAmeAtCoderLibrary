@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Numerics;
 
 namespace TAmeAtCoderLibrary;
 
@@ -74,13 +75,9 @@ public static partial class MathEx // partial は削除 (単一ファイルの�
 
         long root = 0L;
         // 最上位ビットから2ビットずつチェックしていく
-        // longは64bitなので、最上位ビットペアは62bit目から
-        long bit = 1L << 62;
-
-        while (bit > number)
-        {
-            bit >>= 2;
-        }
+        // BitOperations.Log2 を使って開始ビットを効率的に計算
+        int shift = (System.Numerics.BitOperations.Log2((ulong)number)) & ~1;
+        long bit = 1L << shift;
 
         while (bit != 0L)
         {
