@@ -20,6 +20,11 @@ public class UnionFindTree<T> where T : notnull
     private readonly IEqualityComparer<T> _comparer;
 
     /// <summary>
+    /// 現在の集合（グループ）の数を取得します。
+    /// </summary>
+    public int Count { get; private set; }
+
+    /// <summary>
     /// UnionFindTree クラスの新しいインスタンスを初期化します。
     /// デフォルトの EqualityComparer を使用します。
     /// </summary>
@@ -34,6 +39,7 @@ public class UnionFindTree<T> where T : notnull
     {
         _comparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
         _nodes = new Dictionary<T, Node>(_comparer);
+        Count = 0;
     }
 
     /// <summary>
@@ -69,6 +75,7 @@ public class UnionFindTree<T> where T : notnull
             return false;
         }
         _nodes.Add(id, new Node(id));
+        Count++;
         return true;
     }
 
@@ -181,6 +188,7 @@ public class UnionFindTree<T> where T : notnull
             node1.Size += node2.Size;
         }
 
+        Count--;
         return true;
     }
 
@@ -227,25 +235,5 @@ public class UnionFindTree<T> where T : notnull
 
         // どちらか一方、または両方の要素が存在しない場合は接続されていない
         return false;
-    }
-
-    /// <summary>
-    /// Union-Find ツリー内の集合の数（根となっている要素の数）を取得します。
-    /// </summary>
-    /// <returns>現在の集合（根）の数。</returns>
-    public int CountSets()
-    {
-        // 最も直接的な方法は、全てのノードを調べて、自身が親であるノードを数えること。
-        // この方法は経路圧縮をトリガーしないため、副作用が少ない。
-        int count = 0;
-        foreach (var kvp in _nodes)
-        {
-            // kvp.Key が要素ID, kvp.Value が Node インスタンス
-            if (_comparer.Equals(kvp.Value.Parent, kvp.Key))
-            {
-                count++;
-            }
-        }
-        return count;
     }
 }
