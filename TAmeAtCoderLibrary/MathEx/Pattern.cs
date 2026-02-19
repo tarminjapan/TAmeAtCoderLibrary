@@ -10,35 +10,6 @@ public static partial class MathEx
         // --- 内部ヘルパーメソッド ---
 
         /// <summary>
-        /// べき乗剰余 (base^exponent % modulus) を効率的に計算します。
-        /// </summary>
-        /// <param name="baseValue">底</param>
-        /// <param name="exponent">指数</param>
-        /// <param name="modulus">法</param>
-        /// <returns>(baseValue^exponent) % modulus</returns>
-        /// <exception cref="ArgumentOutOfRangeException">modulus が 1 以下の場合にスローされます。</exception>
-        private static long ModPow(long baseValue, long exponent, long modulus)
-        {
-            if (modulus <= 0)
-                throw new ArgumentOutOfRangeException(nameof(modulus), "Modulus must be positive.");
-            // 指数が負の場合は未対応（必要なら拡張）
-            if (exponent < 0)
-                throw new ArgumentOutOfRangeException(nameof(exponent), "Exponent must be non-negative.");
-            if (modulus == 1) return 0; // a % 1 is always 0
-
-            long result = 1L;
-            baseValue %= modulus;
-            while (exponent > 0)
-            {
-                if (exponent % 2 == 1)
-                    result = (result * baseValue) % modulus;
-                baseValue = (baseValue * baseValue) % modulus;
-                exponent /= 2;
-            }
-            return result;
-        }
-
-        /// <summary>
         /// モジュラ逆数 (a^-1 mod m) を計算します。
         /// 法 m が素数であることを前提とします (フェルマーの小定理を使用)。
         /// </summary>
@@ -57,7 +28,7 @@ public static partial class MathEx
                 throw new InvalidOperationException($"Modular inverse does not exist for a multiple of the modulus ({a} % {modulus} = 0).");
 
             // Fermat's Little Theorem: a^(m-2) ≡ a^-1 (mod m) where m is prime
-            return ModPow(a, modulus - 2, modulus);
+            return MathEx.ModPow(a, modulus - 2, modulus);
         }
 
         // --- 階乗 ---
