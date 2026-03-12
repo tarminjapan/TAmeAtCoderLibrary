@@ -81,7 +81,7 @@ public static partial class MathEx
         /// <exception cref="ArgumentException"><paramref name="numbers"/> が空の場合にスローされます。</exception>
         public static int Gcd(params int[] numbers)
         {
-            if (numbers == null) throw new ArgumentNullException(nameof(numbers));
+            ArgumentNullException.ThrowIfNull(numbers);
             if (numbers.Length == 0) throw new ArgumentException("Input collection must contain at least one element.", nameof(numbers));
 
             // Math.Abs で負数に対応
@@ -127,7 +127,7 @@ public static partial class MathEx
         /// <exception cref="ArgumentException"><paramref name="numbers"/> が空の場合にスローされます。</exception>
         public static long Gcd(params long[] numbers)
         {
-            if (numbers == null) throw new ArgumentNullException(nameof(numbers));
+            ArgumentNullException.ThrowIfNull(numbers);
             if (numbers.Length == 0) throw new ArgumentException("Input collection must contain at least one element.", nameof(numbers));
 
             // Math.Abs で負数に対応
@@ -173,7 +173,7 @@ public static partial class MathEx
         /// <exception cref="OverflowException">計算の途中または最終結果が <see cref="long"/> の範囲を超える場合にスローされる可能性があります。</exception>
         public static long Lcm(params long[] numbers)
         {
-            if (numbers == null) throw new ArgumentNullException(nameof(numbers));
+            ArgumentNullException.ThrowIfNull(numbers);
             if (numbers.Length == 0) throw new ArgumentException("Input collection must contain at least one element.", nameof(numbers));
 
             // 入力に0が含まれていたらLCMは0

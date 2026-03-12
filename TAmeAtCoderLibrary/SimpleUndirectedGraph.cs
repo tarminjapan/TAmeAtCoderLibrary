@@ -34,11 +34,11 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
         // 1からmaxVertexIdまでの頂点を事前に追加
         for (int vertexId = 1; vertexId <= maxVertexId; vertexId++)
         {
-            base.AddVertex(vertexId);
+            AddVertex(vertexId);
         }
 
         // 提供された辺を追加
-        this.AddEdges(edges);
+        AddEdges(edges);
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="edges"/>内の任意の頂点IDが負の場合にスローされます。</exception>
     public SimpleUndirectedGraph(int[][] edges) : base()
     {
-        this.AddEdges(edges);
+        AddEdges(edges);
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
             int vertexB = edge[1];
             long weight = (edge.Length == 3) ? edge[2] : 1L;
 
-            this.AddEdge(vertexA, vertexB, weight);
+            AddEdge(vertexA, vertexB, weight);
         }
     }
 
@@ -100,7 +100,7 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
     /// <exception cref="ArgumentOutOfRangeException">任意の頂点IDが負の場合にスローされます。</exception>
     public new void AddEdge(int vertexA, int vertexB) // 基底クラスにも同名のメソッドがあるため new で隠蔽
     {
-        this.AddEdge(vertexA, vertexB, 1L);
+        AddEdge(vertexA, vertexB, 1L);
     }
 
     /// <summary>
@@ -120,8 +120,8 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
         // 基底クラスの TryAddEdge は頂点/辺の存在チェックと追加を行う。
         // 無向グラフなので、両方向の辺を追加。
         // EdgeCount は基底クラスで管理され、成功時にインクリメントされる。
-        base.TryAddEdge(vertexA, vertexB, weight);
-        base.TryAddEdge(vertexB, vertexA, weight);
+        TryAddEdge(vertexA, vertexB, weight);
+        TryAddEdge(vertexB, vertexA, weight);
     }
 
     /// <summary>
@@ -151,16 +151,16 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
     /// <returns>頂点が見つかり、削除された場合はtrue、頂点が存在しなかった場合はfalse。</returns>
     public bool RemoveVertex(int vertex)
     {
-        if (!base.ContainsVertex(vertex))
+        if (!ContainsVertex(vertex))
             return false;
 
         // ToList() でコピーを作成し、ループ中の変更問題を回避
-        var neighbors = base.GetNeighbors(vertex).ToList();
+        var neighbors = GetNeighbors(vertex).ToList();
 
         // 接続されている辺を両方向から削除
         foreach (var neighbor in neighbors)
         {
-            this.RemoveEdge(vertex, neighbor); // 内部で基底クラスの RemoveEdge を両方向呼び出す
+            RemoveEdge(vertex, neighbor); // 内部で基底クラスの RemoveEdge を両方向呼び出す
         }
 
         // 最後に頂点自体を隣接リストから削除
@@ -197,7 +197,7 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
     public int GetDegree(int vertex)
     {
         // 無向グラフの次数は、基底クラスの出次数と同じ (辺の追加/削除を両方向で行うため)。
-        return base.GetOutDegree(vertex);
+        return GetOutDegree(vertex);
     }
 
     /// <summary>
@@ -208,9 +208,9 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
     public HashSet<int> GetLeaves()
     {
         var leaves = new HashSet<int>();
-        foreach (var vertex in base.GetVertices())
+        foreach (var vertex in GetVertices())
         {
-            if (this.GetDegree(vertex) <= 1)
+            if (GetDegree(vertex) <= 1)
             {
                 leaves.Add(vertex);
             }
@@ -229,7 +229,7 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
         var globallyVisited = new HashSet<int>();
         var parentMap = new Dictionary<int, int>(); // BFSでの親を記録
 
-        foreach (var startVertex in base.GetVertices())
+        foreach (var startVertex in GetVertices())
         {
             if (globallyVisited.Contains(startVertex))
                 continue; // この連結成分は既に探索済み
@@ -244,7 +244,7 @@ public class SimpleUndirectedGraph : SimpleDirectedGraph
             {
                 var currentNode = queue.Dequeue();
 
-                foreach (var neighborNode in base.GetNeighbors(currentNode))
+                foreach (var neighborNode in GetNeighbors(currentNode))
                 {
                     // BFSで来た道を直接戻るのはサイクルではない
                     if (parentMap.TryGetValue(currentNode, out int parent) && neighborNode == parent)

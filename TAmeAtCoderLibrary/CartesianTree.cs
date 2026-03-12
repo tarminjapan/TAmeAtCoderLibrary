@@ -12,17 +12,22 @@ public class CartesianTree<TKey, TValue> where TKey : IComparable<TKey> where TV
     /// <summary>
     /// デカルトの木のノードを表します。
     /// </summary>
-    public class Node
+    /// <remarks>
+    /// <see cref="Node"/> クラスの新しいインスタンスを初期化します。
+    /// </remarks>
+    /// <param name="key">ノードのキー。</param>
+    /// <param name="value">ノードの値（優先度）。</param>
+    public class Node(TKey key, TValue value)
     {
         /// <summary>
         /// ノードのキーを取得します。
         /// </summary>
-        public TKey Key { get; }
+        public TKey Key { get; } = key;
 
         /// <summary>
         /// ノードの値（優先度）を取得します。
         /// </summary>
-        public TValue Value { get; }
+        public TValue Value { get; } = value;
 
         /// <summary>
         /// ノードの親を取得または設定します。
@@ -38,17 +43,6 @@ public class CartesianTree<TKey, TValue> where TKey : IComparable<TKey> where TV
         /// ノードの右の子を取得または設定します。
         /// </summary>
         public Node? Right { get; internal set; }
-
-        /// <summary>
-        /// <see cref="Node"/> クラスの新しいインスタンスを初期化します。
-        /// </summary>
-        /// <param name="key">ノードのキー。</param>
-        /// <param name="value">ノードの値（優先度）。</param>
-        public Node(TKey key, TValue value)
-        {
-            Key = key;
-            Value = value;
-        }
     }
 
     /// <summary>
@@ -65,7 +59,7 @@ public class CartesianTree<TKey, TValue> where TKey : IComparable<TKey> where TV
     public CartesianTree(IEnumerable<KeyValuePair<TKey, TValue>> items, bool isAlreadySorted = false)
     {
         // 木を効率的に構築するために、項目をキーでソートします。
-        var sortedItems = isAlreadySorted ? items.ToArray() : items.OrderBy(kvp => kvp.Key).ToArray();
+        var sortedItems = isAlreadySorted ? [.. items] : items.OrderBy(kvp => kvp.Key).ToArray();
         if (sortedItems.Length == 0)
         {
             return;

@@ -143,10 +143,7 @@ public class AvlTree<T> where T : IComparable<T>
     {
         var result = new List<T>();
 
-        if (RootNode != null)
-        {
-            RootNode.InOrderTraversal(result);
-        }
+        RootNode?.InOrderTraversal(result);
 
         return result;
     }
@@ -174,30 +171,23 @@ public class AvlTree<T> where T : IComparable<T>
     /// <summary>
     /// <see cref="AvlTree{T}"/>クラスのノードを表します。
     /// </summary>
-    public class Node
+    /// <remarks>
+    /// <see cref="Node"/>クラスの新しいインスタンスを初期化します。
+    /// </remarks>
+    /// <param name="item">ノードに格納する値。</param>
+    /// <param name="tree">このノードが属する<see cref="AvlTree{T}"/>インスタンス。</param>
+    public class Node(T item, AvlTree<T> tree)
     {
-        /// <summary>
-        /// <see cref="Node"/>クラスの新しいインスタンスを初期化します。
-        /// </summary>
-        /// <param name="item">ノードに格納する値。</param>
-        /// <param name="tree">このノードが属する<see cref="AvlTree{T}"/>インスタンス。</param>
-        public Node(T item, AvlTree<T> tree)
-        {
-            Value = item;
-            Height = 1;
-            Count = 1;
-            Tree = tree;
-        }
 
         /// <summary>
         /// このノードが属する<see cref="AvlTree{T}"/>インスタンスを取得します。
         /// </summary>
-        public AvlTree<T> Tree { get; private set; }
+        public AvlTree<T> Tree { get; private set; } = tree;
 
         /// <summary>
         /// ノードの値を読み取り専用で取得します。
         /// </summary>
-        public T Value { get; private set; }
+        public T Value { get; private set; } = item;
 
         /// <summary>
         /// 親ノードを取得または設定します。
@@ -217,12 +207,12 @@ public class AvlTree<T> where T : IComparable<T>
         /// <summary>
         /// このノードの高さを取得または設定します。
         /// </summary>
-        int Height { get; set; } // Nodeクラス内でのみsetされるため、private set にはしない (Rebalanceで更新される)
+        int Height { get; set; } = 1;
 
         /// <summary>
         /// このノードをルートとする部分木のノード数を取得します。
         /// </summary>
-        public int Count { get; private set; } // private set に変更
+        public int Count { get; private set; } = 1;
 
         /// <summary>
         /// このノードまたはその子孫に新しい要素を追加します。同じ要素が既に存在する場合は、何も行いません。

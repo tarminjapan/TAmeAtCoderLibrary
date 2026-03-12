@@ -54,7 +54,7 @@ public static class Numeric
         if (value < 0) throw new ArgumentOutOfRangeException(nameof(value), "Input value must be non-negative.");
         if (targetBase < 2) throw new ArgumentOutOfRangeException(nameof(targetBase), "Target base must be 2 or greater.");
 
-        if (value == 0L) return new Stack<int>(new[] { 0 }); // 0の場合
+        if (value == 0L) return new Stack<int>([0]); // 0の場合
 
         var stack = new Stack<int>();
         while (value > 0L)
@@ -78,12 +78,12 @@ public static class Numeric
     public static int[] ConvertToBinary(long decimalValue)
     {
         // 0の扱い: 元のコードに合わせて {0} を返す
-        if (decimalValue == 0) return new int[] { 0 };
+        if (decimalValue == 0) return [0];
         // 負数はエラー
         if (decimalValue < 0) throw new ArgumentOutOfRangeException(nameof(decimalValue), "Input value must be non-negative.");
 
         var stack = GetDigitsInBase(decimalValue, 2);
-        return stack.ToArray(); // Stack<T>.ToArray() は Push した順の逆 (正しい順序)
+        return [.. stack]; // Stack<T>.ToArray() は Push した順の逆 (正しい順序)
     }
 
 
@@ -136,8 +136,7 @@ public static class Numeric
     /// <exception cref="OverflowException">結果がlongの範囲を超える場合。</exception>
     public static long ConvertToDecimal(string numberString, int sourceBase) // sourceBaseもintで十分
     {
-        if (numberString == null)
-            throw new ArgumentNullException(nameof(numberString));
+        ArgumentNullException.ThrowIfNull(numberString);
         if (string.IsNullOrWhiteSpace(numberString)) // 空白のみもエラーとする
             throw new ArgumentException("Input string cannot be empty or whitespace.", nameof(numberString));
         if (sourceBase < 2 || sourceBase > 36)
@@ -196,8 +195,7 @@ public static class Numeric
     /// <exception cref="OverflowException">結果がlongの範囲を超える場合。</exception>
     public static long ConvertToDecimal(int[] digits, int sourceBase) // sourceBaseもint
     {
-        if (digits == null)
-            throw new ArgumentNullException(nameof(digits));
+        ArgumentNullException.ThrowIfNull(digits);
         if (digits.Length == 0)
             throw new ArgumentException("Input array cannot be empty.", nameof(digits));
         if (sourceBase < 2)
@@ -281,7 +279,7 @@ public static class Numeric
     {
         if (number < 0)
             throw new ArgumentOutOfRangeException(nameof(number), "Input number must be non-negative.");
-        if (number == 0) return new List<int> { 0 }; // 0の扱い
+        if (number == 0) return [0]; // 0の扱い
 
         // LinkedListを使った代替案
         var digits = new LinkedList<int>();
@@ -291,7 +289,7 @@ public static class Numeric
             digits.AddFirst((int)(current % 10)); // 先頭に追加
             current /= 10;
         }
-        return digits.ToList();
+        return [.. digits];
     }
 
     // Common.Power への依存をなくすため、整数冪乗を内部で計算する例
@@ -361,9 +359,9 @@ public static class Numeric
             throw new ArgumentOutOfRangeException(nameof(position), $"Position {position} is out of range for the number 0.");
 
 
-        long upperPart = (number / powerOf10Pos) * powerOf10Pos; // 上位部分
+        long upperPart = number / powerOf10Pos * powerOf10Pos; // 上位部分
         long lowerPart = number % powerOf10PosMinus1; // 下位部分
-        long newDigitValue = (long)newDigit * powerOf10PosMinus1; // 新しい桁の値
+        long newDigitValue = newDigit * powerOf10PosMinus1; // 新しい桁の値
 
         // 結果がオーバーフローしないかチェック
         long result;

@@ -15,7 +15,7 @@ public class BinaryIndexedTree
     /// <param name="size">要素の数。0からsize-1までのインデックスをサポートします。</param>
     public BinaryIndexedTree(int size)
     {
-        if (size < 0) throw new ArgumentOutOfRangeException(nameof(size));
+        ArgumentOutOfRangeException.ThrowIfNegative(size);
         _size = size;
         _tree = new long[size + 1];
         _mod = null;
@@ -28,8 +28,8 @@ public class BinaryIndexedTree
     /// <param name="mod">剰余演算の法。</param>
     public BinaryIndexedTree(int size, long mod)
     {
-        if (size < 0) throw new ArgumentOutOfRangeException(nameof(size));
-        if (mod <= 0) throw new ArgumentOutOfRangeException(nameof(mod));
+        ArgumentOutOfRangeException.ThrowIfNegative(size);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(mod);
         _size = size;
         _tree = new long[size + 1];
         _mod = mod;
@@ -88,8 +88,8 @@ public class BinaryIndexedTree
     public long Sum(int from, int to)
     {
         if (from > to) throw new ArgumentException("'from' must be less than or equal to 'to'.");
-        if (from < 0) throw new ArgumentOutOfRangeException(nameof(from));
-        if (to >= _size) throw new ArgumentOutOfRangeException(nameof(to));
+        ArgumentOutOfRangeException.ThrowIfNegative(from);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(to, _size);
 
         long sumTo = Sum(to);
         long sumFrom = (from == 0) ? 0 : Sum(from - 1);

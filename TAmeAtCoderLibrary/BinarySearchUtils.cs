@@ -19,7 +19,7 @@ public static class BinarySearchUtils<T> where T : IComparable<T>
     /// <exception cref="ArgumentNullException">list が null の場合にスローされます。</exception>
     public static int LowerBound(IReadOnlyList<T> list, T value)
     {
-        if (list == null) throw new ArgumentNullException(nameof(list));
+        ArgumentNullException.ThrowIfNull(list);
 
         int left = 0;
         int count = list.Count;
@@ -50,7 +50,7 @@ public static class BinarySearchUtils<T> where T : IComparable<T>
     /// <exception cref="ArgumentNullException">list が null の場合にスローされます。</exception>
     public static int UpperBound(IReadOnlyList<T> list, T value)
     {
-        if (list == null) throw new ArgumentNullException(nameof(list));
+        ArgumentNullException.ThrowIfNull(list);
 
         int left = 0;
         int count = list.Count;

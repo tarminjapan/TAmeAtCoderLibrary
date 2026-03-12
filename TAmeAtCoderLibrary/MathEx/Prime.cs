@@ -21,7 +21,7 @@ public static partial class MathEx
             }
             if (limit < 2)
             {
-                return Array.Empty<int>(); // 2未満に素数はない
+                return []; // 2未満に素数はない
             }
 
             // limit + 1 のサイズの配列を用意 (インデックスを数値と対応させるため)
@@ -57,7 +57,7 @@ public static partial class MathEx
                     primes.Add(i);
                 }
             }
-            return primes.ToArray();
+            return [.. primes];
         }
 
         /// <summary>

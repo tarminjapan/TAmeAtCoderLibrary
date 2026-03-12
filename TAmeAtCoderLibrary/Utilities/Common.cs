@@ -86,7 +86,7 @@ public static class Common
         var allCombinations = new List<List<int>>();
         if (k == 0)
         {
-            allCombinations.Add(new List<int>());
+            allCombinations.Add([]);
             return allCombinations;
         }
 
@@ -98,7 +98,7 @@ public static class Common
     {
         if (index == k)
         {
-            allCombinations.Add(new List<int>(currentCombination));
+            allCombinations.Add([.. currentCombination]);
             return;
         }
 
@@ -125,7 +125,7 @@ public static class Common
         var allPermutations = new List<List<int>>();
         if (k == 0)
         {
-            allPermutations.Add(new List<int>());
+            allPermutations.Add([]);
             return allPermutations;
         }
 
@@ -137,7 +137,7 @@ public static class Common
     {
         if (index == k)
         {
-            allPermutations.Add(new List<int>(currentPermutation));
+            allPermutations.Add([.. currentPermutation]);
             return;
         }
 

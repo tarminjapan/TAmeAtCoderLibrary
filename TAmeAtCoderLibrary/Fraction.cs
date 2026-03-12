@@ -21,8 +21,8 @@ public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
     /// <param name="numerator">初期化に使用する整数値（分子）。分母は自動的に1に設定されます。</param>
     public Fraction(long numerator = 0)
     {
-        this.Numerator = numerator;
-        this.Denominator = 1;
+        Numerator = numerator;
+        Denominator = 1;
     }
 
     /// <summary>
@@ -36,8 +36,8 @@ public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
         if (denominator == 0)
             throw new DivideByZeroException("分母に0を指定することはできません。");
 
-        this.Numerator = numerator;
-        this.Denominator = denominator;
+        Numerator = numerator;
+        Denominator = denominator;
         Normal();
     }
 
@@ -47,8 +47,8 @@ public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
     /// <param name="b">コピー元のFractionオブジェクト。</param>
     public Fraction(Fraction b)
     {
-        this.Numerator = b.Numerator;
-        this.Denominator = b.Denominator;
+        Numerator = b.Numerator;
+        Denominator = b.Denominator;
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
     /// <returns>等しければtrue、そうでなければfalseを返します。</returns>
     public override bool Equals(object b)
     {
-        if (b is Fraction b2 && this.Numerator == b2.Numerator && this.Denominator == b2.Denominator)
+        if (b is Fraction b2 && Numerator == b2.Numerator && Denominator == b2.Denominator)
             return true;
 
         return false;
@@ -101,7 +101,7 @@ public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
     public bool Equals(Fraction other)
     {
         if (other is null) return false;
-        return this.Numerator == other.Numerator && this.Denominator == other.Denominator;
+        return Numerator == other.Numerator && Denominator == other.Denominator;
     }
 
     /// <summary>
@@ -215,7 +215,7 @@ public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
     /// </summary>
     /// <param name="a">対象の分数。</param>
     /// <returns>渡された分数と同一の分数オブジェクト。</returns>
-    public static Fraction operator +(Fraction a) => new Fraction(a);
+    public static Fraction operator +(Fraction a) => new(a);
 
     /// <summary>
     /// 単項のマイナス演算子。分子の符号を反転させた分数を返します。
@@ -261,7 +261,7 @@ public class Fraction : IComparable<Fraction>, IEquatable<Fraction>
     /// </summary>
     /// <param name="a">変換元のlong型数値。分子に設定され、分母は1となります。</param>
     /// <returns>変換されたFractionオブジェクト。</returns>
-    public static implicit operator Fraction(long a) => new Fraction(a);
+    public static implicit operator Fraction(long a) => new(a);
 
     /// <summary>
     /// このオブジェクトのハッシュコードを取得いたします。

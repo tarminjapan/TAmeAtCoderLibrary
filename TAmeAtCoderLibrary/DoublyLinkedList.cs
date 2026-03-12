@@ -6,7 +6,7 @@ namespace TAmeAtCoderLibrary;
 /// <typeparam name="T">リストに格納する要素の型</typeparam>
 public class DoublyLinkedList<T> : IEnumerable<T>
 {
-    private readonly Dictionary<T, Node> _nodeMap = new();
+    private readonly Dictionary<T, Node> _nodeMap = [];
     private Node _head; // 先頭ノードへの参照を保持
     private Node _tail; // 末尾ノードへの参照を保持
 
@@ -303,28 +303,6 @@ public class DoublyLinkedList<T> : IEnumerable<T>
     }
 
     /// <summary>
-    /// リストが循環していないか検証します。循環が検出された場合は例外をスローします。
-    /// </summary>
-    /// <exception cref="InvalidOperationException">リストが循環している場合</exception>
-    private void ValidateNoCycles()
-    {
-        if (_nodeMap.Count <= 1)
-            return;
-
-        var slow = _head;
-        var fast = _head;
-
-        while (fast?.Next != null)
-        {
-            slow = slow.Next;
-            fast = fast.Next.Next;
-
-            if (slow == fast)
-                throw new InvalidOperationException("リストに循環が検出されました。");
-        }
-    }
-
-    /// <summary>
     /// リストを完全にクリアします。
     /// </summary>
     public void Clear()
@@ -369,7 +347,7 @@ public class DoublyLinkedList<T> : IEnumerable<T>
         /// <param name="value">ノードが保持する値</param>
         internal Node(T value)
         {
-            this.Value = value;
+            Value = value;
         }
     }
 }

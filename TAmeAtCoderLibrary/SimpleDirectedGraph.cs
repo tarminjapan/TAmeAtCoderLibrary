@@ -10,9 +10,9 @@ namespace TAmeAtCoderLibrary;
 public class SimpleDirectedGraph
 {
     // 隣接リスト表現: {頂点 -> {隣接頂点 -> 重み}}
-    protected readonly Dictionary<int, Dictionary<int, long>> _adjacencyList = new();
+    protected readonly Dictionary<int, Dictionary<int, long>> _adjacencyList = [];
     // 各頂点の入次数を保持する辞書
-    protected readonly Dictionary<int, int> _inDegrees = new();
+    protected readonly Dictionary<int, int> _inDegrees = [];
 
     /// <summary>
     /// グラフが持つ頂点の数を取得します。
@@ -81,7 +81,7 @@ public class SimpleDirectedGraph
         if (vertex < 0)
             throw new ArgumentOutOfRangeException(nameof(vertex), "Vertex ID cannot be negative.");
 
-        if (_adjacencyList.TryAdd(vertex, new Dictionary<int, long>()))
+        if (_adjacencyList.TryAdd(vertex, []))
         {
             _inDegrees.TryAdd(vertex, 0); // 新しい頂点の入次数は0
             return true;
@@ -302,7 +302,7 @@ public class SimpleDirectedGraph
         {
             return neighbors.Keys;
         }
-        return Array.Empty<int>();
+        return [];
     }
 
     /// <summary>
@@ -429,7 +429,7 @@ public class SimpleDirectedGraph
             else if (neighborState == VisitState.Visiting)
             {
                 // 訪問中の頂点に戻ってきた -> 閉路発見
-                cyclePath = new List<int>();
+                cyclePath = [];
                 // スタックから閉路部分を抽出
                 while (recursionStack.TryPop(out var node))
                 {
@@ -489,9 +489,9 @@ public class SimpleDirectedGraph
             // 隣接頂点の入次数を減らす (GetNeighborsを使用)
             foreach (var neighbor in GetNeighbors(currentVertex))
             {
-                if (currentInDegrees.ContainsKey(neighbor)) // 念のため確認
+                if (currentInDegrees.TryGetValue(neighbor, out int value)) // 念のため確認
                 {
-                    currentInDegrees[neighbor]--;
+                    currentInDegrees[neighbor] = --value;
                     if (currentInDegrees[neighbor] == 0)
                     {
                         EnqueueTo(zeroInDegreeQueue, neighbor, lexicographical);
@@ -514,7 +514,7 @@ public class SimpleDirectedGraph
     }
 
     // キュー/優先度付きキューの要素数を取得するヘルパー
-    private int GetQueueCount(object queue, bool lexicographical)
+    private static int GetQueueCount(object queue, bool lexicographical)
     {
         return lexicographical
             ? ((PriorityQueue<int, int>)queue).Count
@@ -546,7 +546,7 @@ public class SimpleDirectedGraph
     }
 
     // トポロジカルソート用のキュー/優先度付きキューへの追加ヘルパー
-    private void EnqueueTo(object queue, int vertex, bool lexicographical)
+    private static void EnqueueTo(object queue, int vertex, bool lexicographical)
     {
         if (lexicographical)
             ((PriorityQueue<int, int>)queue).Enqueue(vertex, vertex);
@@ -555,7 +555,7 @@ public class SimpleDirectedGraph
     }
 
     // トポロジカルソート用のキュー/優先度付きキューからの取り出しヘルパー
-    private int DequeueFrom(object queue, bool lexicographical)
+    private static int DequeueFrom(object queue, bool lexicographical)
     {
         return lexicographical
             ? ((PriorityQueue<int, int>)queue).Dequeue()

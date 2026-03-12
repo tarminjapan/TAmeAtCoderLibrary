@@ -53,7 +53,7 @@ public static partial class MathEx
 
                 if (count % 2 == 0)
                 {
-                    return checked((count / 2) * sum_term);
+                    return checked(count / 2 * sum_term);
                 }
                 else if (sum_term % 2 == 0)
                 {
@@ -61,7 +61,7 @@ public static partial class MathEx
                 }
                 else
                 {
-                    return checked((count * sum_term) / 2);
+                    return checked(count * sum_term / 2);
                 }
             }
             catch (OverflowException)
@@ -103,7 +103,7 @@ public static partial class MathEx
 
             if (count % 2 == 0)
             {
-                return checked((count / 2) * inner_sum);
+                return checked(count / 2 * inner_sum);
             }
             else
             {
@@ -352,7 +352,7 @@ public static partial class MathEx
         // --- ModInverse の実装例 (法が素数の場合) ---
         private static long ModInverse(long value, long divisor)
         {
-            long g = ExtendedGCD(value, divisor, out long x, out long y);
+            long g = ExtendedGCD(value, divisor, out long x, out _);
             if (g != 1) return -1;
             return Mod(x, divisor);
         }
@@ -368,7 +368,7 @@ public static partial class MathEx
             }
             long gcd = ExtendedGCD(b, a % b, out long x1, out long y1);
             x = y1;
-            y = x1 - (a / b) * y1;
+            y = x1 - a / b * y1;
             return gcd;
         }
     }

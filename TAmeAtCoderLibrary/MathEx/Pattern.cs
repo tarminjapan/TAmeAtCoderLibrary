@@ -28,7 +28,7 @@ public static partial class MathEx
                 throw new InvalidOperationException($"Modular inverse does not exist for a multiple of the modulus ({a} % {modulus} = 0).");
 
             // Fermat's Little Theorem: a^(m-2) ≡ a^-1 (mod m) where m is prime
-            return MathEx.ModPow(a, modulus - 2, modulus);
+            return ModPow(a, modulus - 2, modulus);
         }
 
         // --- 階乗 ---
@@ -89,7 +89,7 @@ public static partial class MathEx
             {
                 // checked は不要。剰余を取るため long の範囲を超える可能性は低い
                 // (divisor が非常に大きい場合は別だが、実用上問題ないことが多い)
-                result = (result * i) % divisor;
+                result = result * i % divisor;
             }
             return result;
         }
@@ -119,7 +119,7 @@ public static partial class MathEx
                 {
                     for (int i = 0; i < r; i++)
                     {
-                        result *= (n - i);
+                        result *= n - i;
                     }
                 }
             }
@@ -150,7 +150,7 @@ public static partial class MathEx
             long result = 1L;
             for (long i = 0; i < r; i++)
             {
-                result = (result * (n - i)) % divisor;
+                result = result * (n - i) % divisor;
                 // Ensure result stays non-negative if (n-i) can be negative or very large leading to negative intermediate modulo result
                 if (result < 0) result += divisor;
             }
@@ -243,14 +243,14 @@ public static partial class MathEx
             long numerator = 1L;
             for (long i = 0; i < r; i++)
             {
-                numerator = (numerator * (n - i)) % divisor;
+                numerator = numerator * (n - i) % divisor;
             }
 
             // 分母: r! mod p
             long denominator = 1L;
             for (long i = 1; i <= r; i++)
             {
-                denominator = (denominator * i) % divisor;
+                denominator = denominator * i % divisor;
             }
 
             // 分母の逆数を計算: (r!)^-1 mod p
@@ -272,7 +272,7 @@ public static partial class MathEx
             }
 
 
-            long result = (numerator * denominatorInverse) % divisor;
+            long result = numerator * denominatorInverse % divisor;
             // 結果が負になる場合があるので補正
             if (result < 0) result += divisor;
 

@@ -85,12 +85,9 @@ public static class SequenceGenerator
     /// <exception cref="ArgumentNullException">itemsがnullの場合にスローされます。</exception>
     public static IEnumerable<T[]> GeneratePermutations<T>(IEnumerable<T> items) where T : IComparable<T>
     {
-        if (items == null)
-        {
-            throw new ArgumentNullException(nameof(items));
-        }
+        ArgumentNullException.ThrowIfNull(items);
 
-        T[] a = items.ToArray();
+        T[] a = [.. items];
         int n = a.Length;
 
         if (n == 0)
@@ -124,9 +121,7 @@ public static class SequenceGenerator
             }
 
             // 4. a[i] と a[j] を交換する
-            T tmp = a[i];
-            a[i] = a[j];
-            a[j] = tmp;
+            (a[j], a[i]) = (a[i], a[j]);
 
             // 5. a[i+1] 以降の要素を逆順にする
             Array.Reverse(a, i + 1, n - i - 1);

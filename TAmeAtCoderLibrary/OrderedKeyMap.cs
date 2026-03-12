@@ -12,7 +12,7 @@ using System.Collections.Generic;
 public class OrderedKeyMap<TKey, TValue> where TKey : IComparable<TKey>
 {
     private readonly AvlTree<TKey> _avl = new();
-    private readonly Dictionary<TKey, TValue> _dic = new();
+    private readonly Dictionary<TKey, TValue> _dic = [];
 
     /// <summary>最小のキーを取得します</summary>
     public TKey MinKey => _avl.MinKey;
@@ -36,10 +36,9 @@ public class OrderedKeyMap<TKey, TValue> where TKey : IComparable<TKey>
     public void Add(TKey key, TValue value)
     {
         // Avoid adding duplicate keys which Dictionary doesn't allow directly
-        if (!_dic.ContainsKey(key))
+        if (_dic.TryAdd(key, value))
         {
             _avl.Add(key);
-            _dic.Add(key, value);
         }
         else
         {
@@ -56,10 +55,9 @@ public class OrderedKeyMap<TKey, TValue> where TKey : IComparable<TKey>
     /// <returns>キーが追加された場合は true、キーが既に存在した場合は false。</returns>
     public bool TryAdd(TKey key, TValue value)
     {
-        if (!_dic.ContainsKey(key))
+        if (_dic.TryAdd(key, value))
         {
             _avl.Add(key);
-            _dic.Add(key, value);
             return true;
         }
         return false;

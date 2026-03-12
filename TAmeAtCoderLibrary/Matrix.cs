@@ -66,7 +66,7 @@ public static class Matrix<T>
         var dic = new Dictionary<int, HashSet<T>>();
 
         for (int h = 0; h < height; h++)
-            dic.Add(h, new HashSet<T>());
+            dic.Add(h, []);
 
         return dic;
     }

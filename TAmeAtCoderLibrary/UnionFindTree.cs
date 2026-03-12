@@ -45,18 +45,12 @@ public class UnionFindTree<T> where T : notnull
     /// <summary>
     /// Union-Find ツリー内のノードを表します。
     /// </summary>
-    private class Node
+    private class Node(T id)
     {
         /// <summary>このノードの親要素。自身を指している場合、このノードは根です。</summary>
-        public T Parent { get; set; }
+        public T Parent { get; set; } = id; // 初期状態では自身が親 (根)
         /// <summary>このノードを根とする木のサイズ（要素数）。根ノードでのみ有効な値です。</summary>
-        public int Size { get; set; }
-
-        public Node(T id)
-        {
-            Parent = id; // 初期状態では自身が親 (根)
-            Size = 1;
-        }
+        public int Size { get; set; } = 1;
     }
 
     /// <summary>

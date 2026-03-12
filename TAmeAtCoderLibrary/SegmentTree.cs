@@ -18,7 +18,7 @@ public class SegmentTree
     /// <summary>
     /// セグメント木のインデックスの開始値を取得します（通常は0）。
     /// </summary>
-    public int MinIndex => DefaultMinIndex;
+    public static int MinIndex => DefaultMinIndex;
 
     /// <summary>
     /// セグメント木を指定された要素数で初期化します。
